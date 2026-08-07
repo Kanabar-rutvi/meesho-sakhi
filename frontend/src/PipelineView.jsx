@@ -1,7 +1,6 @@
 import { AGENT_META, CATEGORY_ICONS } from "./constants";
 
 function getAgentMeta(key) {
-  // For category agents like filter_bedding, ranker_study, etc.
   for (const prefix of ["filter_", "ranker_", "selector_"]) {
     if (key.startsWith(prefix)) {
       const cat = key.replace(prefix, "");
@@ -9,11 +8,11 @@ function getAgentMeta(key) {
       return {
         label: `${typeLabel} • ${cat}`,
         icon: CATEGORY_ICONS[cat] || "📦",
-        color: prefix === "filter_" ? "#0ea5e9" : prefix === "ranker_" ? "#f59e0b" : "#22c55e"
+        color: prefix === "filter_" ? "#0ea5e9" : prefix === "ranker_" ? "#f59e0b" : "var(--success)"
       };
     }
   }
-  return AGENT_META[key] || { label: key, icon: "🤖", color: "#9333ea" };
+  return AGENT_META[key] || { label: key, icon: "🤖", color: "var(--brand-primary)" };
 }
 
 function AgentCard({ agentKey, agent }) {
@@ -24,25 +23,36 @@ function AgentCard({ agentKey, agent }) {
     <div style={{
       display: "flex",
       alignItems: "flex-start",
-      gap: "10px",
-      padding: "10px 12px",
-      borderRadius: "10px",
-      background: state === "done" ? "rgba(34,197,94,0.06)" : state === "running" ? "rgba(147,51,234,0.08)" : "transparent",
-      border: `1px solid ${state === "done" ? "rgba(34,197,94,0.2)" : state === "running" ? "rgba(147,51,234,0.2)" : "transparent"}`,
+      gap: "12px",
+      padding: "10px 14px",
+      borderRadius: "var(--radius-md)",
+      background: state === "done"
+        ? "rgba(16,185,129,0.06)"
+        : state === "running"
+        ? "rgba(147,51,234,0.06)"
+        : "transparent",
+      border: `1px solid ${
+        state === "done"
+          ? "rgba(16,185,129,0.15)"
+          : state === "running"
+          ? "rgba(147,51,234,0.15)"
+          : "transparent"
+      }`,
       transition: "all 0.3s ease"
     }}>
       {/* Icon */}
       <div style={{
         width: "32px",
         height: "32px",
-        borderRadius: "8px",
-        background: state === "running" ? meta.color : state === "done" ? "#22c55e" : "#e2e8f0",
+        borderRadius: "var(--radius-sm)",
+        background: state === "running" ? meta.color : state === "done" ? "var(--success)" : "var(--bg-subtle)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: "16px",
+        fontSize: "15px",
         flexShrink: 0,
-        transition: "background 0.3s ease"
+        transition: "background 0.3s ease",
+        color: state === "running" || state === "done" ? "white" : "inherit"
       }}>
         {state === "running" ? "⚡" : state === "done" ? "✓" : meta.icon}
       </div>
@@ -50,18 +60,18 @@ function AgentCard({ agentKey, agent }) {
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontSize: "12px",
+          fontSize: "13px",
           fontWeight: 600,
-          color: state === "done" ? "#22c55e" : state === "running" ? meta.color : "#94a3b8",
-          fontFamily: "'Inter', sans-serif",
+          color: state === "done" ? "var(--success)" : state === "running" ? meta.color : "var(--text-tertiary)",
+          fontFamily: "var(--font-body)",
           transition: "color 0.3s"
         }}>
           {agent.label || meta.label}
         </div>
         <div style={{
           fontSize: "11px",
-          color: "#64748b",
-          marginTop: "1px"
+          color: "var(--text-tertiary)",
+          marginTop: "2px"
         }}>
           {state === "running" ? (agent.message || "Processing...") :
            state === "done" ? "Complete" : "Waiting"}
@@ -73,29 +83,22 @@ function AgentCard({ agentKey, agent }) {
         width: "8px",
         height: "8px",
         borderRadius: "50%",
-        background: state === "done" ? "#22c55e" : state === "running" ? meta.color : "#e2e8f0",
+        background: state === "done" ? "var(--success)" : state === "running" ? meta.color : "var(--bg-subtle)",
         flexShrink: 0,
-        marginTop: "4px",
+        marginTop: "6px",
         boxShadow: state === "running" ? `0 0 8px ${meta.color}` : "none",
-        animation: state === "running" ? "pulse 1.5s infinite" : "none"
+        animation: state === "running" ? "agentPulse 1.5s infinite" : "none"
       }} />
     </div>
   );
 }
 
 export default function PipelineView({ agents, agentOrder, status }) {
-  const runningCount = Object.values(agents).filter(a => a.state === "running").length;
   const doneCount = Object.values(agents).filter(a => a.state === "done").length;
   const totalSoFar = agentOrder.length;
 
   return (
-    <div style={{
-      background: "white",
-      borderRadius: "16px",
-      border: "1px solid #e2e8f0",
-      padding: "20px",
-      boxShadow: "0 4px 16px rgba(0,0,0,0.08)"
-    }}>
+    <div className="card" style={{ padding: "20px" }}>
       {/* Header */}
       <div style={{
         display: "flex",
@@ -103,19 +106,19 @@ export default function PipelineView({ agents, agentOrder, status }) {
         justifyContent: "space-between",
         marginBottom: "16px"
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{
-            width: "28px", height: "28px",
-            borderRadius: "8px",
-            background: "linear-gradient(135deg, #9333ea, #ec4899)",
+            width: "30px", height: "30px",
+            borderRadius: "var(--radius-sm)",
+            background: "linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: "14px"
           }}>🧠</div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: "13px", color: "#1a0533", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <div style={{ fontWeight: 700, fontSize: "14px", color: "var(--text-primary)", fontFamily: "var(--font-display)" }}>
               Agent Pipeline
             </div>
-            <div style={{ fontSize: "11px", color: "#94a3b8" }}>
+            <div style={{ fontSize: "12px", color: "var(--text-tertiary)" }}>
               {status === "done" ? `${doneCount} agents complete` :
                status === "running" ? `${doneCount}/${totalSoFar} done` : "Ready"}
             </div>
@@ -124,11 +127,13 @@ export default function PipelineView({ agents, agentOrder, status }) {
         {status === "running" && (
           <div style={{
             fontSize: "11px",
-            color: "#9333ea",
-            fontWeight: 600,
-            background: "#f3e8ff",
-            padding: "4px 8px",
-            borderRadius: "20px"
+            color: "var(--brand-primary)",
+            fontWeight: 700,
+            background: "rgba(147,51,234,0.08)",
+            padding: "4px 12px",
+            borderRadius: "var(--radius-full)",
+            animation: "agentPulse 2s infinite",
+            letterSpacing: "0.5px"
           }}>
             LIVE
           </div>
@@ -136,16 +141,37 @@ export default function PipelineView({ agents, agentOrder, status }) {
         {status === "done" && (
           <div style={{
             fontSize: "11px",
-            color: "#22c55e",
-            fontWeight: 600,
-            background: "#f0fdf4",
-            padding: "4px 8px",
-            borderRadius: "20px"
+            color: "var(--success)",
+            fontWeight: 700,
+            background: "rgba(16,185,129,0.08)",
+            padding: "4px 12px",
+            borderRadius: "var(--radius-full)"
           }}>
             DONE ✓
           </div>
         )}
       </div>
+
+      {/* Progress bar */}
+      {totalSoFar > 0 && (
+        <div style={{
+          height: "4px",
+          background: "var(--bg-subtle)",
+          borderRadius: "var(--radius-full)",
+          overflow: "hidden",
+          marginBottom: "16px"
+        }}>
+          <div style={{
+            height: "100%",
+            width: `${totalSoFar > 0 ? (doneCount / totalSoFar) * 100 : 0}%`,
+            background: status === "done"
+              ? "var(--success)"
+              : "linear-gradient(90deg, var(--brand-primary), var(--brand-secondary))",
+            borderRadius: "var(--radius-full)",
+            transition: "width 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
+          }} />
+        </div>
+      )}
 
       {/* Agent list */}
       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -153,7 +179,7 @@ export default function PipelineView({ agents, agentOrder, status }) {
           <div style={{
             textAlign: "center",
             padding: "24px",
-            color: "#94a3b8",
+            color: "var(--text-tertiary)",
             fontSize: "13px"
           }}>
             Agents will appear here as they run
@@ -166,9 +192,9 @@ export default function PipelineView({ agents, agentOrder, status }) {
       </div>
 
       <style>{`
-        @keyframes pulse {
+        @keyframes agentPulse {
           0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.8); }
+          50% { opacity: 0.5; transform: scale(0.85); }
         }
       `}</style>
     </div>

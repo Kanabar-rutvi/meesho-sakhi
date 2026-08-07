@@ -1,0 +1,20 @@
+{
+  "name": "Meesho Sakhi – AI Shopping Agent",
+  "short_name": "Sakhi",
+  "description": "Your autonomous AI shopping companion. Tell Sakhi your goal and budget — 8 agents plan, compare, and curate the perfect cart.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a0533",
+  "theme_color": "#9333ea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛍️</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "productivity"],
+  "lang": "en"
+}

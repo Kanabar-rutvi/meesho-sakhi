@@ -80,32 +80,171 @@ def _extract_json(text: str) -> dict | list:
     text = text[start:]
     return json.loads(text)
 
+
+# ─── Budget Parsing ──────────────────────────────────────────────────────────
+def _parse_budget(text: str) -> int:
+    """Extract budget from natural language. Handles ₹15,000 / 15k / 15000 / Rs 15000 etc."""
+    text = text.lower().replace("₹", "").replace("rs", "").replace("rs.", "").replace("inr", "")
+    
+    # Match patterns like "15,000" or "1,50,000" (Indian format) or "15000"
+    # Also match "15k" or "15K"
+    
+    # First try: numbers with commas like 15,000 or 1,50,000
+    comma_matches = re.findall(r'(\d{1,3}(?:,\d{2,3})*)', text)
+    if comma_matches:
+        # Take the largest number found
+        parsed = []
+        for m in comma_matches:
+            try:
+                parsed.append(int(m.replace(",", "")))
+            except ValueError:
+                pass
+        if parsed:
+            # Return the one that looks most like a budget (typically > 100)
+            budgets = [p for p in parsed if p >= 100]
+            if budgets:
+                return max(budgets)
+    
+    # Second try: "15k" or "20K" style
+    k_matches = re.findall(r'(\d+)\s*k\b', text)
+    if k_matches:
+        return int(k_matches[-1]) * 1000
+    
+    # Third try: plain large numbers like 15000, 8000
+    plain_matches = re.findall(r'\d+', text)
+    if plain_matches:
+        candidates = [int(n) for n in plain_matches if int(n) >= 100]
+        if candidates:
+            return max(candidates)
+    
+    # Default budget
+    return 12000
+
+
+# ─── Category Detection ─────────────────────────────────────────────────────
+# Maps keywords to relevant catalog categories with priority weights
+QUERY_CATEGORY_MAP = {
+    # Room / Hostel setup
+    "hostel":       {"bedding": 0.30, "study": 0.25, "kitchen": 0.15, "storage": 0.12, "electronics": 0.10, "hygiene": 0.08},
+    "room":         {"bedding": 0.30, "study": 0.20, "kitchen": 0.15, "storage": 0.15, "electronics": 0.10, "hygiene": 0.10},
+    "pg":           {"bedding": 0.30, "study": 0.20, "kitchen": 0.15, "storage": 0.15, "electronics": 0.10, "hygiene": 0.10},
+    "dorm":         {"bedding": 0.30, "study": 0.25, "kitchen": 0.15, "storage": 0.12, "electronics": 0.10, "hygiene": 0.08},
+    "flat":         {"bedding": 0.25, "kitchen": 0.25, "storage": 0.15, "electronics": 0.15, "hygiene": 0.10, "study": 0.10},
+    "apartment":    {"bedding": 0.25, "kitchen": 0.25, "storage": 0.15, "electronics": 0.15, "hygiene": 0.10, "study": 0.10},
+    "bachelor":     {"bedding": 0.25, "kitchen": 0.20, "study": 0.15, "storage": 0.15, "electronics": 0.15, "hygiene": 0.10},
+    
+    # Study focused
+    "study":        {"study": 0.50, "electronics": 0.30, "storage": 0.20},
+    "student":      {"study": 0.35, "bedding": 0.25, "electronics": 0.20, "kitchen": 0.10, "hygiene": 0.05, "storage": 0.05},
+    "engineering":  {"study": 0.40, "electronics": 0.30, "bedding": 0.20, "storage": 0.10},
+    "college":      {"study": 0.30, "bedding": 0.25, "electronics": 0.20, "kitchen": 0.10, "storage": 0.10, "hygiene": 0.05},
+    "exam":         {"study": 0.60, "electronics": 0.25, "kitchen": 0.15},
+    "desk":         {"study": 0.60, "electronics": 0.25, "storage": 0.15},
+    "laptop":       {"electronics": 0.50, "study": 0.30, "storage": 0.20},
+    "work from home":{"study": 0.35, "electronics": 0.35, "kitchen": 0.15, "storage": 0.15},
+    "wfh":          {"study": 0.35, "electronics": 0.35, "kitchen": 0.15, "storage": 0.15},
+    
+    # Kitchen focused
+    "kitchen":      {"kitchen": 0.65, "storage": 0.20, "hygiene": 0.15},
+    "cook":         {"kitchen": 0.65, "storage": 0.20, "hygiene": 0.15},
+    "cooking":      {"kitchen": 0.65, "storage": 0.20, "hygiene": 0.15},
+    "food":         {"kitchen": 0.60, "storage": 0.25, "hygiene": 0.15},
+    "tiffin":       {"kitchen": 0.70, "storage": 0.30},
+    "meal":         {"kitchen": 0.70, "storage": 0.15, "hygiene": 0.15},
+    
+    # Bedroom / Sleep focused
+    "bed":          {"bedding": 0.70, "storage": 0.15, "hygiene": 0.15},
+    "sleep":        {"bedding": 0.70, "electronics": 0.15, "hygiene": 0.15},
+    "mattress":     {"bedding": 0.80, "hygiene": 0.20},
+    "pillow":       {"bedding": 0.80, "hygiene": 0.20},
+    "blanket":      {"bedding": 0.80, "hygiene": 0.20},
+    
+    # Electronics focused
+    "gadget":       {"electronics": 0.60, "study": 0.25, "storage": 0.15},
+    "electronic":   {"electronics": 0.60, "study": 0.25, "storage": 0.15},
+    "tech":         {"electronics": 0.60, "study": 0.25, "storage": 0.15},
+    "charger":      {"electronics": 0.80, "study": 0.20},
+    "speaker":      {"electronics": 0.80, "study": 0.20},
+    "earphone":     {"electronics": 0.80, "study": 0.20},
+    "headphone":    {"electronics": 0.80, "study": 0.20},
+    
+    # Storage / Organization
+    "organiz":      {"storage": 0.60, "study": 0.20, "hygiene": 0.20},
+    "storage":      {"storage": 0.60, "kitchen": 0.20, "hygiene": 0.20},
+    "clean":        {"hygiene": 0.60, "kitchen": 0.20, "storage": 0.20},
+    "laundry":      {"hygiene": 0.60, "storage": 0.25, "kitchen": 0.15},
+    "bathroom":     {"hygiene": 0.70, "storage": 0.30},
+    "towel":        {"hygiene": 0.70, "storage": 0.30},
+    
+    # Life events
+    "moving":       {"bedding": 0.25, "kitchen": 0.25, "storage": 0.20, "electronics": 0.15, "hygiene": 0.15},
+    "shifting":     {"bedding": 0.25, "kitchen": 0.25, "storage": 0.20, "electronics": 0.15, "hygiene": 0.15},
+    "new home":     {"bedding": 0.20, "kitchen": 0.25, "storage": 0.20, "electronics": 0.15, "hygiene": 0.10, "study": 0.10},
+    "first time":   {"bedding": 0.25, "kitchen": 0.20, "study": 0.15, "storage": 0.15, "electronics": 0.15, "hygiene": 0.10},
+    "essentials":   {"bedding": 0.20, "kitchen": 0.20, "hygiene": 0.20, "storage": 0.15, "electronics": 0.15, "study": 0.10},
+    "basics":       {"bedding": 0.20, "kitchen": 0.20, "hygiene": 0.20, "storage": 0.15, "electronics": 0.15, "study": 0.10},
+    "everything":   {"bedding": 0.20, "kitchen": 0.20, "study": 0.15, "storage": 0.15, "electronics": 0.15, "hygiene": 0.15},
+    "complete":     {"bedding": 0.20, "kitchen": 0.20, "study": 0.15, "storage": 0.15, "electronics": 0.15, "hygiene": 0.15},
+    "setup":        {"bedding": 0.20, "kitchen": 0.20, "study": 0.15, "storage": 0.15, "electronics": 0.15, "hygiene": 0.15},
+    
+    # Gender-specific
+    "girl":         {"bedding": 0.25, "hygiene": 0.25, "storage": 0.20, "kitchen": 0.15, "study": 0.10, "electronics": 0.05},
+    "boy":          {"study": 0.25, "electronics": 0.25, "bedding": 0.20, "kitchen": 0.15, "storage": 0.10, "hygiene": 0.05},
+    "women":        {"bedding": 0.25, "hygiene": 0.25, "storage": 0.20, "kitchen": 0.15, "study": 0.10, "electronics": 0.05},
+    "men":          {"study": 0.25, "electronics": 0.25, "bedding": 0.20, "kitchen": 0.15, "storage": 0.10, "hygiene": 0.05},
+}
+
+def _detect_categories(text: str) -> dict:
+    """Detect relevant categories and their budget weights from the query."""
+    text_lower = text.lower()
+    
+    # Accumulate weights from all matching keywords
+    combined = {}
+    matches = 0
+    
+    for keyword, weights in QUERY_CATEGORY_MAP.items():
+        if keyword in text_lower:
+            matches += 1
+            for cat, weight in weights.items():
+                combined[cat] = combined.get(cat, 0) + weight
+    
+    if not combined or matches == 0:
+        # Default: balanced across all categories
+        combined = {
+            "bedding": 0.25, "study": 0.20, "kitchen": 0.20,
+            "storage": 0.12, "electronics": 0.13, "hygiene": 0.10
+        }
+    
+    # Normalize weights to sum to 1.0
+    total_weight = sum(combined.values())
+    if total_weight > 0:
+        combined = {k: v / total_weight for k, v in combined.items()}
+    
+    return combined
+
+
 def goal_agent(raw_input: str) -> dict:
     """Parse and clarify the user's shopping goal."""
-    text = raw_input.lower()
-    budget = 12000
-    if "15000" in text:
-        budget = 15000
-    elif "20000" in text:
-        budget = 20000
-    elif "8000" in text:
-        budget = 8000
+    budget = _parse_budget(raw_input)
+    category_weights = _detect_categories(raw_input)
+    
+    # Allocate budget per category based on detected weights
+    budget_per_category = {}
+    for cat, weight in category_weights.items():
+        alloc = int(budget * weight)
+        if alloc >= 50:  # Only include categories with meaningful budget
+            budget_per_category[cat] = alloc
 
-    budget_per_category = {
-        "bedding": int(budget * 0.28),
-        "study": int(budget * 0.22),
-        "kitchen": int(budget * 0.18),
-        "storage": int(budget * 0.12),
-        "electronics": int(budget * 0.12),
-        "hygiene": int(budget * 0.08),
-    }
-
+    # Build a smart summary
+    top_cats = sorted(category_weights, key=category_weights.get, reverse=True)[:3]
+    cat_names = ", ".join(top_cats)
+    
     fallback = {
-        "goal_summary": "Set up a practical hostel room with essentials for study, sleep, and daily use.",
+        "goal_summary": f"{raw_input[:80]}",
         "budget_total": budget,
         "budget_per_category": budget_per_category,
         "priority": "balanced",
-        "context": "Hostel student looking for affordable, durable essentials."
+        "context": f"User wants: {raw_input}. Focus areas: {cat_names}."
     }
 
     result = _call_claude("", "")
@@ -119,16 +258,19 @@ def goal_agent(raw_input: str) -> dict:
 def planner_agent(goal: dict) -> dict:
     """Break goal into per-category shopping tasks."""
     categories = []
-    for name in ["bedding", "study", "kitchen", "storage", "electronics", "hygiene"]:
-        budget = goal.get("budget_per_category", {}).get(name, 0)
+    budget_map = goal.get("budget_per_category", {})
+    
+    for name, budget in budget_map.items():
         if budget <= 0:
             continue
+        # Smarter max_items: at least 2 items, scale with budget
+        max_items = max(2, min(5, budget // 800))
         categories.append({
             "name": name,
             "budget": budget,
-            "must_have": ["essential item", "value pick"],
-            "nice_to_have": ["extra comfort", "upgrade option"],
-            "max_items": 3
+            "must_have": [f"top-rated {name} essentials"],
+            "nice_to_have": [f"comfort upgrades for {name}"],
+            "max_items": max_items
         })
 
     fallback = {
@@ -151,7 +293,7 @@ def filter_agent(category: str, budget: int, products: list) -> list:
         return []
 
     affordable = sorted(affordable, key=lambda p: (-p["rating"], p["price"], -p["reviews"]))
-    top = affordable[:6]
+    top = affordable[:8]
 
     result = _call_claude("", "")
     if result:
@@ -171,8 +313,11 @@ def ranker_agent(category: str, products: list, must_have: list, nice_to_have: l
     scored = []
     for product in products:
         score = product["rating"] * 10 + min(product["reviews"], 1000) / 100
-        if any(tag in product.get("tags", []) for tag in ["hostel", "study", "stainless", "LED", "organizer"]):
-            score += 2
+        # Boost items with relevant tags
+        boost_tags = ["hostel", "study", "stainless", "LED", "organizer", "foldable", 
+                      "portable", "ergonomic", "essential", "quick-dry", "insulated"]
+        if any(tag in product.get("tags", []) for tag in boost_tags):
+            score += 3
         scored.append((score, product))
 
     ranked = [product for _, product in sorted(scored, key=lambda item: item[0], reverse=True)]
@@ -211,7 +356,16 @@ def review_agent(selected_items: list) -> list:
         rating = item.get("rating", 0)
         reviews = item.get("reviews", 0)
         trust_score = min(0.99, max(0.6, round((rating / 5) * 0.7 + min(reviews / 5000, 0.3), 2)))
-        reason = "Strong rating and review volume" if trust_score >= 0.8 else "Solid value pick for hostel essentials"
+        
+        if trust_score >= 0.9:
+            reason = "Exceptional ratings with high review volume — very trustworthy"
+        elif trust_score >= 0.8:
+            reason = "Strong rating and solid review count"
+        elif trust_score >= 0.7:
+            reason = "Good value pick with decent reviews"
+        else:
+            reason = "Budget-friendly option, fewer reviews but acceptable quality"
+        
         item["trust_score"] = trust_score
         item["trust_reason"] = reason
     return selected_items
@@ -220,15 +374,26 @@ def recommend_agent(all_selected: list, goal: dict) -> dict:
     """Final recommendation: build the cart with reasoning."""
     cart = []
     total = 0
-    for item in all_selected[:6]:
-        cart.append({"id": item["id"], "quantity": 1, "reason": f"Best fit for {goal.get('goal_summary', 'your hostel setup')}"})
+    goal_summary = goal.get("goal_summary", "your shopping goal")
+    
+    for item in all_selected[:12]:  # Allow up to 12 items
+        reason = f"Best {item['category']} pick for: {goal_summary}"
+        cart.append({"id": item["id"], "quantity": 1, "reason": reason})
         total += item["price"]
+
+    budget = goal.get("budget_total", 0)
+    saved = budget - total if budget > total else 0
+    
+    if saved > 0:
+        savings_tip = f"🎉 Great news! You saved ₹{saved:,} from your ₹{budget:,} budget. Consider adding extras or saving for later!"
+    else:
+        savings_tip = "Your cart is optimized to give you the best value within your budget."
 
     fallback = {
         "cart": cart,
         "total": total,
-        "savings_tip": "Buy the essentials first, then add non-urgent upgrades once you settle in.",
-        "summary": "This curated hostel setup balances comfort, durability, and budget across your top categories."
+        "savings_tip": savings_tip,
+        "summary": f"Sakhi curated {len(cart)} items across {len(set(i.get('category','') for i in all_selected[:12]))} categories, optimized for quality and budget."
     }
 
     result = _call_claude("", "")

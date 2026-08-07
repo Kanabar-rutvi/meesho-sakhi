@@ -6,7 +6,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/shop': 'http://localhost:8000',
-      '/health': 'http://localhost:8002'
+      '/meesho': 'http://localhost:8000',
+      '/health': 'http://localhost:8000'
     }
   }
 })
