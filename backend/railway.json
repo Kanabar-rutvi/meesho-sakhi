@@ -1,0 +1,40 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "dockerfile",
+    "buildCommand": "echo 'Using Dockerfile for build'",
+    "startCommand": "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"
+  },
+  "deploy": {
+    "startCommand": "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}",
+    "restartPolicyType": "on_failure",
+    "restartPolicyMaxRetries": 5
+  },
+  "environmentVariables": [
+    {
+      "name": "PORT",
+      "description": "Server port (set by Railway automatically)",
+      "value": "8000"
+    },
+    {
+      "name": "ENV",
+      "description": "Environment (production/development)",
+      "value": "production"
+    },
+    {
+      "name": "HOST",
+      "description": "Server host",
+      "value": "0.0.0.0"
+    }
+  ],
+  "requiredEnvironmentVariables": [
+    {
+      "name": "ANTHROPIC_API_KEY",
+      "description": "Anthropic Claude API Key from https://console.anthropic.com/"
+    },
+    {
+      "name": "ALLOWED_ORIGINS",
+      "description": "Comma-separated list of allowed CORS origins (your Vercel frontend domain)"
+    }
+  ]
+}
