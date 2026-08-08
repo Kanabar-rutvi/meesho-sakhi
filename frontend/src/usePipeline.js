@@ -2,18 +2,29 @@ import { useState, useCallback } from "react";
 
 // Get API URL from environment or use default based on current origin
 const getApiUrl = () => {
+  // 1. Check environment variable first (set during build)
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+    return import.meta.env.VITE_API_URL.replace(/\/$/, ''); // Remove trailing slash
   }
-  // For local development, use relative URL (proxied by Vite)
+  
+  // 2. For local development, use relative URL (proxied by Vite)
   if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
     return "http://localhost:8000";
   }
-  // For production, use same origin as frontend
-  return window.location.origin;
+  
+  // 3. For production on same domain, try common API paths
+  const origin = window.location.origin;
+  
+  // Try /api path first (common pattern)
+  return origin; // Will use relative paths: /shop, /meesho, etc.
 };
 
 const API_BASE_URL = getApiUrl();
+
+// Debug: Log the API URL being used
+if (typeof window !== 'undefined') {
+  console.log('[Meesho Sakhi] API Base URL:', API_BASE_URL);
+}
 
 export function usePipeline() {
   const [status, setStatus] = useState("idle"); // idle | running | done | error
@@ -32,7 +43,10 @@ export function usePipeline() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/shop`, {
+      const apiUrl = `${API_BASE_URL}/shop`;
+      console.log('[Meesho Sakhi] Calling API:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query })
@@ -40,8 +54,8 @@ export function usePipeline() {
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('[Meesho Sakhi] API Error Response:', response.status, errorText);
         throw new Error(`Server error: ${response.status}${errorText ? ` - ${errorText}` : ""}`);
-      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
