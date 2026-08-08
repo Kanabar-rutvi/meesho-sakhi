@@ -23,14 +23,17 @@ app = FastAPI(
 # In production, replace with your actual frontend domain
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:5173,http://localhost:3000"
+    "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,http://localhost:8000"
 ).split(",")
+
+# Clean up origins (strip whitespace)
+ALLOWED_ORIGINS = [origin.strip() for origin in ALLOWED_ORIGINS]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
     allow_headers=["Content-Type", "Authorization"],
     expose_headers=["Content-Type"],
 )
@@ -45,6 +48,14 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
+
+# ─── Global Exception Handler ────────────────────────────────────────────────
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc)},
+    )
 
 # ─── Routers ─────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent
@@ -64,4 +75,15 @@ async def health():
         "version": "2.0.0",
         "catalog_size": len(CATALOG),
         "features": ["8-agent-pipeline", "auth-jwt", "sse-streaming", "conversational-refinement"]
+    }
+
+# ─── Root endpoint (for deployment verification) ──────────────────────────────
+@app.get("/", tags=["system"])
+async def root():
+    return {
+        "name": "Meesho Sakhi API",
+        "version": "2.0.0",
+        "status": "running",
+        "docs": "/docs",
+        "health": "/health"
     }

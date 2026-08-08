@@ -1,5 +1,20 @@
 import { useState, useCallback } from "react";
 
+// Get API URL from environment or use default based on current origin
+const getApiUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  // For local development, use relative URL (proxied by Vite)
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    return "http://localhost:8000";
+  }
+  // For production, use same origin as frontend
+  return window.location.origin;
+};
+
+const API_BASE_URL = getApiUrl();
+
 export function usePipeline() {
   const [status, setStatus] = useState("idle"); // idle | running | done | error
   const [agents, setAgents] = useState({});      // agentKey -> {state, result, label, icon}
@@ -17,13 +32,15 @@ export function usePipeline() {
     setError(null);
 
     try {
-      const response = await fetch("/shop", {
+      const response = await fetch(`${API_BASE_URL}/shop`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query })
       });
 
-      if (!response.ok) throw new Error(`Server error: ${response.status}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server error: ${response.status}${errorText ? ` - ${errorText}` : ""}`);
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();

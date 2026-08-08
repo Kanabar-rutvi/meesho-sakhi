@@ -177,9 +177,18 @@ export default function AskSakhi() {
           )}
           
           {error && (
-            <div className="card animate-fade-in" style={{ background: "#fef2f2", borderColor: "#fecaca", color: "#dc2626" }}>
+            <div className="card animate-fade-in" style={{ background: "#fef2f2", borderColor: "#fecaca", color: "#dc2626", padding: '16px' }}>
               <div style={{ fontWeight: 700, marginBottom: "8px", fontSize: "16px" }}>⚠️ Error Occurred</div>
-              <div style={{ fontSize: "14px" }}>{error}</div>
+              <div style={{ fontSize: "14px", marginBottom: '12px' }}>{error}</div>
+              <div style={{ fontSize: "12px", color: "#991b1b", background: "rgba(220,38,38,0.05)", padding: '8px 12px', borderRadius: 'var(--radius-md)', marginBottom: '8px' }}>
+                <strong>💡 Troubleshooting:</strong>
+                <ul style={{ marginTop: '6px', paddingLeft: '20px', margin: '6px 0 0 0' }}>
+                  <li>Make sure the backend is running on <code style={{background: 'rgba(0,0,0,0.1)', padding: '2px 4px', borderRadius: '2px'}}>http://localhost:8000</code></li>
+                  <li>Check the browser console (F12) for CORS errors</li>
+                  <li>Try refreshing the page (Cmd/Ctrl + Shift + R)</li>
+                  <li>If deployed, ensure <code style={{background: 'rgba(0,0,0,0.1)', padding: '2px 4px', borderRadius: '2px'}}>VITE_API_URL</code> environment variable is set correctly</li>
+                </ul>
+              </div>
             </div>
           )}
         </div>

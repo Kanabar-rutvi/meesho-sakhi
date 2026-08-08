@@ -28,29 +28,79 @@ Results stream live to the UI via Server-Sent Events (SSE).
 | AI | Claude claude-sonnet-4-6 (Anthropic API) |
 | Streaming | Server-Sent Events (SSE) |
 | Catalog | 68 realistic Indian hostel products (JSON) |
-<!-- 
+
 ## Setup
 
-### 1. Backend
+### 1. Backend Setup
+
 ```bash
 cd backend
-pip install fastapi uvicorn anthropic python-dotenv
 
-# Add your API key:
-echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
+# Install dependencies
+pip install -r requirements.txt
 
-# Run:
+# Create .env file (copy from .env.example)
+cp .env.example .env
+
+# Add your Anthropic API key to .env
+# ANTHROPIC_API_KEY=sk-ant-...
+
+# Run the server
 uvicorn main:app --reload --port 8000
 ```
 
-### 2. Frontend
+**Important:** Make sure the backend is running on `http://localhost:8000` before starting the frontend.
+
+### 2. Frontend Setup
+
 ```bash
 cd frontend
+
+# Install dependencies
 npm install
+
+# Create .env.local file (copy from .env.example)
+cp .env.example .env.local
+
+# For local development, leave VITE_API_URL empty (uses Vite proxy)
+# For production, set VITE_API_URL=https://your-api-domain.com
+
+# Start development server
 npm run dev   # opens at http://localhost:5173
 ```
 
-The Vite dev server proxies `/shop` → `http://localhost:8000` automatically.
+### 3. Verify Setup
+
+- Open http://localhost:5173 in your browser
+- Check that the backend is running: `curl http://localhost:8000/health`
+- Try the "Ask Sakhi" page and submit a query
+- You should see agent pipeline status and results
+
+## Troubleshooting
+
+### "Server error: 404" when generating recommendations
+
+**Local Development:**
+1. Make sure backend is running: `cd backend && uvicorn main:app --reload --port 8000`
+2. Check if `/shop` endpoint is accessible: `curl -X POST http://localhost:8000/shop -H "Content-Type: application/json" -d '{"query":"test"}'`
+3. Check browser console for CORS errors
+4. Make sure `ALLOWED_ORIGINS` in backend `.env` includes your frontend URL
+
+**After Deployment:**
+1. Set `VITE_API_URL` to your deployed backend URL: `https://your-api.example.com`
+2. Rebuild frontend: `npm run build`
+3. Ensure backend is running at the correct URL
+4. Check that CORS is properly configured in backend `.env`:
+   ```
+   ALLOWED_ORIGINS=https://your-frontend-domain.com,https://your-api-domain.com
+   ```
+
+### Mobile phone shows errors
+
+- Make sure both frontend and backend support CORS
+- On deployed server, configure CORS headers properly
+- Check that API URL is correct for your deployment environment
+- Clear browser cache and hard refresh (Cmd+Shift+R or Ctrl+Shift+R)
 
 ## Demo Flow
 
@@ -64,4 +114,4 @@ The Vite dev server proxies `/shop` → `http://localhost:8000` automatically.
 - **Streaming** — judges can see reasoning happen in real time
 - **Trust layer** — Review Trust Agent scores products on authenticity
 - **Budget-aware** — Selector Agent enforces per-category budgets strictly
-- **Extensible** — swap the JSON catalog for real Meesho API when available -->
+- **Extensible** — swap the JSON catalog for real Meesho API when available

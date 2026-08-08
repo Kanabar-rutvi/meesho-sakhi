@@ -5,9 +5,21 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/shop': 'http://localhost:8000',
-      '/meesho': 'http://localhost:8000',
-      '/health': 'http://localhost:8000'
+      '/shop': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false
+      },
+      '/meesho': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false
+      },
+      '/health': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false
+      }
     }
   }
 })
