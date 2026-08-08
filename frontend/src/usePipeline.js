@@ -41,6 +41,7 @@ export function usePipeline() {
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Server error: ${response.status}${errorText ? ` - ${errorText}` : ""}`);
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
