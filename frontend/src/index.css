@@ -330,12 +330,90 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ─── Mobile Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  :root {
+    --spacing-6: 24px;
+    --spacing-5: 16px;
+  }
+}
+
 @media (max-width: 768px) {
-  .card { padding: var(--spacing-4); border-radius: var(--radius-md); }
-  .card:hover { transform: none; }
-  .btn { font-size: 15px; }
-  h1 { font-size: 28px !important; }
-  h2 { font-size: 22px !important; }
+  :root {
+    --spacing-6: 16px;
+    --spacing-5: 12px;
+    --spacing-4: 12px;
+  }
+  
+  body {
+    font-size: 15px;
+  }
+
+  .card { 
+    padding: var(--spacing-3) var(--spacing-4);
+    border-radius: var(--radius-md);
+  }
+  
+  .card:hover { 
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn { 
+    font-size: 14px;
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  h1 { 
+    font-size: 24px !important;
+  }
+
+  h2 { 
+    font-size: 18px !important;
+  }
+
+  h3 {
+    font-size: 16px !important;
+  }
+
+  /* Better touch targets on mobile */
+  button, a, .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --spacing-6: 12px;
+    --spacing-5: 8px;
+    --spacing-4: 8px;
+  }
+
+  body {
+    font-size: 14px;
+  }
+
+  .card {
+    padding: var(--spacing-2) var(--spacing-3);
+    border-radius: var(--radius-sm);
+  }
+
+  .btn {
+    font-size: 13px;
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  h1 {
+    font-size: 20px !important;
+  }
+
+  h2 {
+    font-size: 16px !important;
+  }
+
+  h3 {
+    font-size: 14px !important;
+  }
 }
 
 /* ─── PWA Safe Area ──────────────────────────────────────────────────────────── */

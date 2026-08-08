@@ -26,16 +26,17 @@ export default function Layout() {
       {/* ─── Top Header ─── */}
       <header style={{
         background: 'linear-gradient(135deg, var(--brand-primary-dark) 0%, var(--brand-primary) 100%)',
-        padding: '12px 24px',
+        padding: 'clamp(10px, 2vw, 12px) clamp(16px, 4vw, 24px)',
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
+        gap: 'clamp(8px, 2vw, 12px)',
         boxShadow: 'var(--shadow-md)',
         position: 'sticky',
         top: 0,
-        zIndex: 50
+        zIndex: 50,
+        flexWrap: 'wrap'
       }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'clamp(8px, 2vw, 12px)', textDecoration: 'none', flex: 1, minWidth: '0' }}>
           <div style={{
             width: '38px', height: '38px',
             background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))',
@@ -44,16 +45,16 @@ export default function Layout() {
             fontSize: '18px', flexShrink: 0,
             boxShadow: '0 0 12px rgba(236, 72, 153, 0.4)'
           }}>🛍️</div>
-          <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '17px', color: 'var(--text-inverse)', letterSpacing: '-0.3px' }}>
+          <div style={{ minWidth: '0' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(14px, 3.5vw, 17px)', color: 'var(--text-inverse)', letterSpacing: '-0.3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Meesho Sakhi
             </div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>Your Autonomous Shopping Companion</div>
+            <div style={{ fontSize: 'clamp(8px, 2vw, 10px)', color: 'rgba(255,255,255,0.7)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Your Shopping Companion</div>
           </div>
         </Link>
 
         {/* Desktop Nav */}
-        <nav style={{ marginLeft: 'auto', display: isMobile ? 'none' : 'flex', gap: '8px', alignItems: 'center' }}>
+        <nav style={{ marginLeft: isMobile ? '0' : 'auto', display: isMobile ? 'none' : 'flex', gap: '8px', alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
           <button 
             onClick={toggleTheme}
             style={{ 
@@ -79,22 +80,24 @@ export default function Layout() {
             <Link key={link.to} to={link.to} style={{
               color: 'white',
               textDecoration: 'none',
-              fontSize: '13px',
+              fontSize: 'clamp(12px, 2.5vw, 13px)',
               fontWeight: isActive(link.to) ? 700 : 500,
               padding: '8px 16px',
               borderRadius: 'var(--radius-full)',
               background: link.accent ? 'rgba(255,255,255,0.2)' : isActive(link.to) ? 'rgba(255,255,255,0.1)' : 'transparent',
               transition: 'all var(--transition-fast)',
               backdropFilter: link.accent ? 'blur(4px)' : 'none',
+              whiteSpace: 'nowrap'
             }}>
               {link.label}
             </Link>
           ))}
           <Link to="/auth" style={{
-            color: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: 500,
+            color: 'white', textDecoration: 'none', fontSize: 'clamp(12px, 2.5vw, 13px)', fontWeight: 500,
             padding: '8px 16px', borderRadius: 'var(--radius-full)',
             border: '1px solid rgba(255,255,255,0.3)', marginLeft: '4px',
-            transition: 'all var(--transition-fast)'
+            transition: 'all var(--transition-fast)',
+            whiteSpace: 'nowrap'
           }}>
             Login
           </Link>
@@ -115,7 +118,8 @@ export default function Layout() {
           boxShadow: '0 -2px 16px rgba(0,0,0,0.08)',
           display: 'flex',
           justifyContent: 'space-around',
-          padding: '8px 0 12px',
+          padding: 'clamp(6px, 2vw, 8px) 0 clamp(8px, 2vw, 12px)',
+          paddingBottom: 'max(clamp(8px, 2vw, 12px), env(safe-area-inset-bottom))',
           zIndex: 50,
           borderTop: '1px solid rgba(0,0,0,0.04)'
         }}>
@@ -132,10 +136,10 @@ export default function Layout() {
               return (
                 <Link key={item.to} to={item.to} style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  textDecoration: 'none', marginTop: '-18px'
+                  textDecoration: 'none', marginTop: 'clamp(-12px, -2vw, -18px)'
                 }}>
                   <div style={{
-                    width: '52px', height: '52px',
+                    width: 'clamp(44px, 12vw, 52px)', height: 'clamp(44px, 12vw, 52px)',
                     borderRadius: '50%',
                     background: active
                       ? 'linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))'
@@ -145,9 +149,9 @@ export default function Layout() {
                     border: '3px solid var(--bg-card)',
                     transition: 'all var(--transition-fast)'
                   }}>
-                    <Icon size={24} color="white" />
+                    <Icon size={20} color="white" />
                   </div>
-                  <span style={{ fontSize: '10px', marginTop: '4px', fontWeight: 700, color: active ? 'var(--brand-primary)' : 'var(--text-tertiary)' }}>
+                  <span style={{ fontSize: 'clamp(8px, 2vw, 10px)', marginTop: '2px', fontWeight: 700, color: active ? 'var(--brand-primary)' : 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
                     {item.label}
                   </span>
                 </Link>
@@ -158,11 +162,14 @@ export default function Layout() {
               <Link key={item.to} to={item.to} style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 color: active ? 'var(--brand-primary)' : 'var(--text-tertiary)',
-                textDecoration: 'none', padding: '4px 0',
-                transition: 'all var(--transition-fast)'
+                textDecoration: 'none', padding: 'clamp(4px, 1vw, 8px)',
+                transition: 'all var(--transition-fast)',
+                minWidth: '44px',
+                minHeight: '44px',
+                justifyContent: 'center'
               }}>
-                <Icon size={22} />
-                <span style={{ fontSize: '10px', marginTop: '4px', fontWeight: 600 }}>{item.label}</span>
+                <Icon size={20} />
+                <span style={{ fontSize: 'clamp(8px, 2vw, 10px)', marginTop: '2px', fontWeight: 600, whiteSpace: 'nowrap' }}>{item.label}</span>
               </Link>
             );
           })}
