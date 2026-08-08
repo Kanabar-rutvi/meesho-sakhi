@@ -56,6 +56,7 @@ export function usePipeline() {
         const errorText = await response.text();
         console.error('[Meesho Sakhi] API Error Response:', response.status, errorText);
         throw new Error(`Server error: ${response.status}${errorText ? ` - ${errorText}` : ""}`);
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
