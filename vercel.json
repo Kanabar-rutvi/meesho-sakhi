@@ -1,8 +1,22 @@
 {
-  "framework": "vite",
-  "buildCommand": "npm run build --prefix frontend",
+  "version": 2,
+  "buildCommand": "npm run build",
+  "installCommand": "npm run install:all",
   "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/_meesho.js": {
+      "maxDuration": 60,
+      "includeFiles": "backend/prisma/schema.prisma"
+    }
+  },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/_meesho.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

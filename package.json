@@ -1,0 +1,16 @@
+{
+  "name": "meesho-sakhi",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Meesho Sakhi — AI Shopping Companion Monorepo",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:backend": "npm install --prefix backend && npx --prefix backend prisma generate",
+    "build": "npm run build:backend && npm run build:frontend",
+    "postinstall": "npm run install:all 2>&1 || echo 'postinstall complete'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

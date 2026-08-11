@@ -12,8 +12,11 @@ backend/.env
 backend/.venv/
 backend/venv/
 backend/*.db
+backend/prisma/*.db
+backend/prisma/dev.db-journal
 backend/*.sqlite
 backend/*.sqlite3
+backend/node_modules/
 
 # Python
 __pycache__/
