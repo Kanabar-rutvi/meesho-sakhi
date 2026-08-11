@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id              Int            @id @default(autoincrement())
+  email           String         @unique
+  hashed_password String
+  name            String?
+  role            String         @default("user")
+  is_active       Boolean        @default(true)
+  created_at      DateTime       @default(now())
+  goals           ShoppingGoal[]
+  feedbacks       UserFeedback[]          @relation("UserFeedbacks")
+  interactions    InteractionHistory[]    @relation("UserInteractions")
+  preferences     LearnedPreferences?     @relation("UserPreferences")
+}
+
+model ShoppingGoal {
+  id         Int            @id @default(autoincrement())
+  user_id    Int?
+  query      String
+  budget     Int            @default(0)
+  status     String         @default("pending")
+  created_at DateTime       @default(now())
+  user       User?          @relation(fields: [user_id], references: [id])
+  plans      ShoppingPlan[]
+  feedbacks  UserFeedback[] @relation("GoalFeedbacks")
+}
+
+model ShoppingPlan {
+  id           Int        @id @default(autoincrement())
+  goal_id      Int
+  name         String
+  total_budget Int        @default(0)
+  is_saved     Boolean    @default(false)
+  created_at   DateTime   @default(now())
+  goal         ShoppingGoal @relation(fields: [goal_id], references: [id])
+  items        CartItem[]
+}
+
+model CartItem {
+  id          Int          @id @default(autoincrement())
+  plan_id     Int
+  product_id  String
+  name        String
+  category    String
+  price       Int
+  quantity    Int          @default(1)
+  trust_score Float        @default(0.0)
+  reason      String?
+  plan        ShoppingPlan @relation(fields: [plan_id], references: [id])
+}
+
+model UserFeedback {
+  id             Int       @id @default(autoincrement())
+  user_id        Int?
+  product_id     String?
+  goal_id        Int?
+  session_id     String?
+  feedback_type  String
+  rating         Int?
+  comment        String?
+  category       String?
+  tags           String?
+  weight         Float     @default(1.0)
+  created_at     DateTime  @default(now())
+  user           User?     @relation("UserFeedbacks", fields: [user_id], references: [id])
+  goal           ShoppingGoal? @relation("GoalFeedbacks", fields: [goal_id], references: [id])
+
+  @@index([user_id])
+  @@index([session_id])
+  @@index([feedback_type])
+}
+
+model InteractionHistory {
+  id             Int       @id @default(autoincrement())
+  user_id        Int?
+  session_id     String?
+  action_type    String
+  query_text     String?
+  category       String?
+  product_from   String?
+  product_to     String?
+  metadata       String?
+  created_at     DateTime  @default(now())
+  user           User?     @relation("UserInteractions", fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([session_id])
+}
+
+model LearnedPreferences {
+  id              Int      @id @default(autoincrement())
+  user_id         Int      @unique
+  category_scores String   @default("{}")
+  brand_scores    String   @default("{}")
+  tag_scores      String   @default("{}")
+  price_sensitivity Float  @default(0.5)
+  quality_bias    Float    @default(0.5)
+  min_rating_pref Float    @default(3.5)
+  eco_soc_warm    Float    @default(0.0)
+  total_signals   Int      @default(0)
+  updated_at      DateTime @updatedAt
+  user            User     @relation("UserPreferences", fields: [user_id], references: [id])
+}

@@ -197,7 +197,8 @@ export function openMeeshoWeb() {
 
 // ── Backend API ───────────────────────────────────────────────────────────────
 
-const API_BASE = "/meesho"; // proxied via Vite to http://localhost:8000
+const envUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "";
+const API_BASE = `${envUrl}/meesho`;
 
 /**
  * Fetch the order payload from the backend.

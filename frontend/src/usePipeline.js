@@ -1,40 +1,19 @@
 import { useState, useCallback } from "react";
 
-// Get API URL from environment variable or default to localhost for development
 const getApiUrl = () => {
-  // 1. Check environment variable first (set during build via VITE_API_URL)
-  const envUrl = import.meta.env.VITE_API_URL;
-  
-  if (envUrl) {
-    // Remove trailing slash if present
-    return envUrl.replace(/\/$/, "");
+  try {
+    const envUrl = import.meta.env.VITE_API_URL;
+    if (envUrl) {
+      return envUrl.replace(/\/$/, "");
+    }
+    return "";
+  } catch (error) {
+    return null;
   }
-
-  // 2. For local development, use localhost:8000 (proxied by Vite dev server)
-  if (
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1"
-  ) {
-    return "http://localhost:8000";
-  }
-
-  // 3. Production requires VITE_API_URL to be set - do not fallback to current origin
-  throw new Error(
-    "VITE_API_URL environment variable is not configured. " +
-    "For production deployment, set VITE_API_URL to your backend URL during build. " +
-    "Example: export VITE_API_URL=https://api.example.com && npm run build"
-  );
 };
 
-let API_BASE_URL;
-try {
-  API_BASE_URL = getApiUrl();
-  console.log("[Meesho Sakhi] API Base URL:", API_BASE_URL);
-} catch (error) {
-  console.error("[Meesho Sakhi]", error.message);
-  // Set a placeholder - the hook will catch this and show error UI
-  API_BASE_URL = null;
-}
+const API_BASE_URL = getApiUrl();
+console.log("[Meesho Sakhi] API Base URL:", API_BASE_URL === null ? "NULL (ERROR)" : (API_BASE_URL === "" ? "(relative / Vite proxy)" : API_BASE_URL));
 
 export function usePipeline() {
   const [status, setStatus] = useState("idle"); // idle | running | done | error
@@ -44,6 +23,14 @@ export function usePipeline() {
   const [goal, setGoal] = useState(null);
   const [error, setError] = useState(null);
 
+  // Progressive streaming state (live-updating list)
+  const [streamingExpected, setStreamingExpected] = useState(null); // {categories, budget_total}
+  const [streamingItems, setStreamingItems] = useState([]);         // items found so far (real data)
+  const [streamingTotal, setStreamingTotal] = useState(0);          // running price total
+  const [streamingCount, setStreamingCount] = useState(0);          // running item count
+  const [trustScores, setTrustScores] = useState({});               // product_id -> {trust_score, trust_reason}
+  const [itemReasons, setItemReasons] = useState({});               // product_id -> {reason, quantity}
+
   const run = useCallback(async (query) => {
     setStatus("running");
     setAgents({});
@@ -51,10 +38,15 @@ export function usePipeline() {
     setCheckout(null);
     setGoal(null);
     setError(null);
+    setStreamingExpected(null);
+    setStreamingItems([]);
+    setStreamingTotal(0);
+    setStreamingCount(0);
+    setTrustScores({});
+    setItemReasons({});
 
     try {
-      // Check if API URL is configured
-      if (!API_BASE_URL) {
+      if (API_BASE_URL === null) {
         throw new Error(
           "Backend API URL is not configured. " +
           "For production, set VITE_API_URL environment variable and rebuild. " +
@@ -62,7 +54,7 @@ export function usePipeline() {
         );
       }
 
-      const apiUrl = `${API_BASE_URL}/shop`;
+      const apiUrl = API_BASE_URL ? `${API_BASE_URL}/shop` : "/shop";
       console.log('[Meesho Sakhi] Calling API:', apiUrl);
       
       const response = await fetch(apiUrl, {
@@ -77,10 +69,11 @@ export function usePipeline() {
         
         // Provide helpful error messages
         if (response.status === 404) {
+          const displayUrl = API_BASE_URL || "(Vite proxy / relative)";
           throw new Error(
             `Backend endpoint not found (404). ` +
-            `Verify VITE_API_URL is correct: ${API_BASE_URL} ` +
-            `and the backend is running.`
+            `Verify VITE_API_URL is correct: ${displayUrl} ` +
+            `and the backend is running on port 8000.`
           );
         } else if (response.status === 500) {
           throw new Error(`Backend server error: ${errorText || "Internal Server Error"}`);
@@ -131,6 +124,38 @@ export function usePipeline() {
         ...prev,
         [agent]: { ...prev[agent], state: "done", result }
       }));
+    } else if (type === "cart_expected") {
+      // Frontend can pre-render skeleton sections for each category
+      setStreamingExpected({
+        categories: event.categories || [],
+        budget_total: event.budget_total || 0,
+      });
+    } else if (type === "item_found") {
+      // An item has been selected — add to the live list IMMEDIATELY
+      setStreamingItems(prev => {
+        if (prev.some(p => p.id === event.item.id)) return prev;
+        return [...prev, event.item];
+      });
+      setStreamingTotal(event.running_total || 0);
+      setStreamingCount(event.running_count || 0);
+    } else if (type === "item_trusted") {
+      // Review agent finished vetting this product — add trust badge
+      setTrustScores(prev => ({
+        ...prev,
+        [event.product_id]: {
+          trust_score: event.trust_score,
+          trust_reason: event.trust_reason,
+        }
+      }));
+    } else if (type === "item_reasoned") {
+      // Recommend agent added a "why Sakhi picked this" reason
+      setItemReasons(prev => ({
+        ...prev,
+        [event.product_id]: {
+          reason: event.reason,
+          quantity: event.quantity || 1,
+        }
+      }));
     } else if (type === "complete") {
       setCheckout(event.checkout);
       setGoal(event.goal);
@@ -148,7 +173,18 @@ export function usePipeline() {
     setCheckout(null);
     setGoal(null);
     setError(null);
+    setStreamingExpected(null);
+    setStreamingItems([]);
+    setStreamingTotal(0);
+    setStreamingCount(0);
+    setTrustScores({});
+    setItemReasons({});
   }, []);
 
-  return { status, agents, agentOrder, checkout, goal, error, run, reset };
+  return {
+    status, agents, agentOrder, checkout, goal, error, run, reset,
+    // Streaming state (for progressive list rendering)
+    streamingExpected, streamingItems, streamingTotal, streamingCount,
+    trustScores, itemReasons,
+  };
 }

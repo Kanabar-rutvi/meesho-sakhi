@@ -2,6 +2,7 @@ import { useState } from "react";
 import { usePipeline } from "../usePipeline";
 import PipelineView from "../PipelineView";
 import CartView from "../CartView";
+import ProgressiveCart from "../ProgressiveCart";
 import ChatRefinement from "../components/ChatRefinement";
 import { EXAMPLE_QUERIES } from "../constants";
 
@@ -135,7 +136,11 @@ function InputPanel({ onSubmit, isRunning, onReset }) {
 }
 
 export default function AskSakhi() {
-  const { status, agents, agentOrder, checkout, goal, error, run, reset } = usePipeline();
+  const {
+    status, agents, agentOrder, checkout, goal, error, run, reset,
+    streamingExpected, streamingItems, streamingTotal, streamingCount,
+    trustScores, itemReasons,
+  } = usePipeline();
   
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "24px 16px" }}>
@@ -162,10 +167,16 @@ export default function AskSakhi() {
           )}
           
           {status === "running" && (
-            <div className="card animate-fade-in" style={{ padding: "60px 40px", textAlign: "center", border: "2px solid rgba(147,51,234,0.15)", boxShadow: "var(--shadow-glow)" }}>
-              <div style={{ fontSize: "48px", marginBottom: "20px", animation: "pulse-glow 2s infinite", borderRadius: "50%", display: "inline-block" }}>✨</div>
-              <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "24px", color: "var(--brand-primary)", marginBottom: "12px" }}>Agents are working...</div>
-              <div style={{ color: "var(--text-secondary)", fontSize: "15px" }}>Watch the pipeline on the left as Sakhi curates your plan in real-time.</div>
+            <div className="animate-fade-in">
+              <ProgressiveCart
+                streamingExpected={streamingExpected}
+                streamingItems={streamingItems}
+                streamingTotal={streamingTotal}
+                streamingCount={streamingCount}
+                trustScores={trustScores}
+                itemReasons={itemReasons}
+                status={status}
+              />
             </div>
           )}
           

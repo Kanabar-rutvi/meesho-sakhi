@@ -23,21 +23,25 @@ export default function Auth() {
         ? { 'Content-Type': 'application/x-www-form-urlencoded' }
         : { 'Content-Type': 'application/json' };
 
-      // In a real app, you'd fetch from your actual backend URL.
-      // For now, this is a mock implementation until we hook up the API fully.
-      // const res = await fetch(`http://localhost:8000${endpoint}`, {
-      //   method: 'POST',
-      //   headers,
-      //   body
-      // });
+      const envUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "";
+      const baseUrl = envUrl || "http://localhost:8000";
+      const res = await fetch(`${baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers,
+        body
+      });
       
-      // if (!res.ok) throw new Error("Authentication failed");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || "Authentication failed");
+      }
       
-      // const data = await res.json();
-      // localStorage.setItem('token', data.access_token);
+      const data = await res.json();
+      if (isLogin) {
+        localStorage.setItem('token', data.access_token);
+      }
       
-      // Mocking successful login for the UI prototype
-      setTimeout(() => navigate('/app'), 500);
+      navigate('/app');
       
     } catch (err) {
       setError(err.message);
