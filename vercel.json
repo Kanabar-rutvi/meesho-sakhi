@@ -4,7 +4,7 @@
   "installCommand": "npm run install:all",
   "outputDirectory": "frontend/dist",
   "functions": {
-    "api/_meesho.js": {
+    "api/[[...meesho]].js": {
       "maxDuration": 60,
       "includeFiles": "backend/prisma/schema.prisma"
     }
@@ -12,7 +12,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/_meesho.js"
+      "destination": "/api/[[...meesho]]"
     },
     {
       "source": "/(.*)",

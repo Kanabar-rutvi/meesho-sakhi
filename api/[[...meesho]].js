@@ -1,6 +1,6 @@
 // Vercel Serverless Function Entry Point
 // Mounts the Express app (backend/src/app.js) into a single serverless handler
-// In production, all routes (/shop, /auth, /learn, /admin) come here via /api/* rewrites
+// Catch-all route [[...meesho]] matches ALL /api/* paths (including /api itself)
 // We strip the "/api" prefix before passing to Express (routes are mounted as /auth, /shop, etc.)
 
 import expressApp from '../backend/src/app.js';
@@ -9,6 +9,8 @@ import serverless from '@vendia/serverless-express';
 export const config = {
   // Shop SSE can be long — bump maxDuration to avoid cold-start timeouts
   maxDuration: 60,
+  // Include Prisma schema so lambda has it for client init edge cases
+  includeFiles: "backend/prisma/schema.prisma",
 };
 
 // Lazy-init so cold start happens once per container
