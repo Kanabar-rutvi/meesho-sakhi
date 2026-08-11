@@ -1,18 +1,29 @@
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { PreferenceEngine } from '../utils/preferenceEngine.js';
 import { optionalAuthenticate } from './auth.js';
 
 const router = express.Router();
 
-// Lazy-load catalog (same as shop router does)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Lazy-load catalog — resolve relative to THIS file, not process.cwd().
+// Critical for Vercel serverless where cwd is the lambda root.
 let CATALOG = [];
 try {
-  const catalogPath = path.resolve(process.cwd(), 'catalog.json');
+  const catalogPath = path.resolve(__dirname, '..', '..', 'catalog.json');
   CATALOG = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 } catch (e) {
   console.error("[learn router] Failed to load catalog.json:", e.message);
+  try {
+    const fallbackPath = path.resolve(__dirname, '..', 'catalog.json');
+    CATALOG = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
+  } catch (_) {
+    console.error("[learn router] catalog not found — recommendations disabled.");
+  }
 }
 
 // Optional auth (guest sessions with session_id also allowed)

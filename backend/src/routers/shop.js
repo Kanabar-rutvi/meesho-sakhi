@@ -1,6 +1,7 @@
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 import { AgentOrchestrator } from '../utils/orchestrator.js';
 import prisma from '../utils/db.js';
@@ -8,13 +9,23 @@ import prisma from '../utils/db.js';
 const router = express.Router();
 const SECRET_KEY = process.env.JWT_SECRET || "meesho-sakhi-super-secret-key-for-demo-purposes";
 
-// Load catalog
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load catalog — always resolve relative to this file, NOT process.cwd().
+// Critical for Vercel serverless where cwd != backend/ folder.
 let CATALOG = [];
 try {
-  const catalogPath = path.resolve(process.cwd(), 'catalog.json');
+  const catalogPath = path.resolve(__dirname, '..', '..', 'catalog.json');
   CATALOG = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 } catch (e) {
-  console.error("Failed to load catalog.json:", e);
+  console.error("[shop router] Failed to load catalog.json:", e.message);
+  try {
+    const fallbackPath = path.resolve(__dirname, '..', 'catalog.json');
+    CATALOG = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
+  } catch (_) {
+    console.error("[shop router] catalog not found — searches will be empty.");
+  }
 }
 
 const optionalAuth = async (req) => {

@@ -6,7 +6,7 @@
   "functions": {
     "api/[[...meesho]].js": {
       "maxDuration": 60,
-      "includeFiles": "backend/prisma/schema.prisma"
+      "includeFiles": "backend/**/*"
     }
   },
   "rewrites": [
