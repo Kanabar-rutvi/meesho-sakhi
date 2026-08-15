@@ -1,6 +1,6 @@
-# 🛍️ Meesho Sakhi — AI Hostel Shopping Agent
+# 🛍️ Meesho Sakhi — AI Shopping Companion
 
-A working multi-agent AI prototype built for the hackathon demo.  
+A multi-agent AI prototype built for intelligent shopping orchestration.  
 **Real Claude API calls. Real agent orchestration. Real-time streaming pipeline.**
 
 ## Architecture
@@ -23,11 +23,11 @@ Results stream live to the UI via Server-Sent Events (SSE).
 
 | Layer | Tech |
 |-------|------|
-| Frontend | React + Vite (no framework bloat) |
-| Backend | FastAPI (Python) |
-| AI | Claude claude-sonnet-4-6 (Anthropic API) |
-| Streaming | Server-Sent Events (SSE) |
-| Catalog | 68 realistic Indian hostel products (JSON) |
+| **Frontend** | React + Vite |
+| **Backend** | Node.js (Express) + Prisma ORM + PostgreSQL |
+| **AI** | Claude 3.5 Sonnet (Anthropic API) |
+| **Streaming**| Server-Sent Events (SSE) |
+| **Monorepo** | npm workspaces / root scripts |
 
 ## Setup
 
@@ -35,175 +35,107 @@ Results stream live to the UI via Server-Sent Events (SSE).
 
 #### Prerequisites
 - Node.js 18+ and npm
-- Python 3.9+
+- PostgreSQL database (running locally or remote)
 - Anthropic API key (get from https://console.anthropic.com/)
 
-#### 1. Backend Setup
+#### 1. Global Install & Build
+
+From the root directory of the project, you can install and build everything at once:
 
 ```bash
-cd backend
+# Install dependencies for both frontend and backend
+npm run install:all
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Create .env file from template
-cp .env.example .env
-
-# Edit .env and add your API key:
-# ANTHROPIC_API_URL=https://console.anthropic.com/
-# ANTHROPIC_API_KEY=sk-ant-...  ← Your actual key here
-# ALLOWED_ORIGINS=http://localhost:5173,http://localhost:8000
-
-# Start the backend server
-python -m uvicorn main:app --reload --port 8000
-
-# Expected: INFO:     Uvicorn running on http://127.0.0.1:8000
+# Generate Prisma Client & Build Frontend (Optional for dev)
+npm run build
 ```
 
-#### 2. Frontend Setup
+#### 2. Backend Setup & Database
+
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Create your `.env` file (you can copy from a template if one exists, or create a new one):
+   ```bash
+   DATABASE_URL="postgresql://username:password@localhost:5432/meesho-sakhi?schema=public"
+   JWT_SECRET="your-super-secret-jwt-key"
+   ALLOWED_ORIGINS="http://localhost:5173"
+   PORT=8000
+   ANTHROPIC_API_KEY="sk-ant-..." # Your Anthropic Key
+   ```
+3. Initialize the database and run seeds:
+   ```bash
+   # Push schema to your Postgres database
+   npx prisma db push
+   
+   # Run the seed script to populate products/data (if applicable)
+   npx prisma db seed
+   ```
+4. Start the backend development server:
+   ```bash
+   npm run dev
+   # Expected: Server running on http://localhost:8000
+   ```
+
+#### 3. Frontend Setup
 
 In a new terminal:
 
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Set up your `.env` file (if you are deploying, otherwise Vite proxy handles `localhost`):
+   ```bash
+   VITE_API_URL=http://localhost:8000
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   # Expected: ➜  Local:   http://localhost:5173/
+   ```
+
+#### 4. Code Quality & Linting
+
+You can run ESLint across the entire monorepo from the root:
 ```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server (Vite proxy handles API calls)
-npm run dev
-
-# Expected: ➜  Local:   http://localhost:5173/
+# Lints both backend and frontend
+npm run lint
 ```
 
-#### 3. Verify Setup
-
-1. Open http://localhost:5173 in your browser
-2. Open Developer Console (F12) and check:
-   - Should see: `[Meesho Sakhi] API Base URL: http://localhost:8000`
-   - No CORS errors
-3. Try the "Ask Sakhi" page and submit a query
-4. Watch the 8-agent pipeline execute with live results
-
----
-
-### Production Deployment
-
-**For complete production deployment instructions, see: [PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md)**
+## Production Deployment
 
 **Quick Summary:**
-- **Frontend:** Deploy to Vercel, set `VITE_API_URL` environment variable
-- **Backend:** Deploy separately to Railway/Heroku/AWS
-- **CORS:** Configure `ALLOWED_ORIGINS` to include your Vercel domain
-- **API Key:** Set `ANTHROPIC_API_KEY` in backend deployment
-
----
-
-### Environment Variables
-
-**Frontend (.env.local)** — Optional for local dev
-```bash
-# For local development: leave empty (defaults to localhost:8000)
-# For production: set to deployed backend URL (NO trailing slash)
-VITE_API_URL=
-
-# Optional feature flags
-VITE_ENABLE_VOICE_INPUT=true
-VITE_ENABLE_REFINEMENT=true
-```
-
-**Backend (.env)** — REQUIRED
-```bash
-# Anthropic Claude API Key (REQUIRED)
-ANTHROPIC_API_KEY=sk-ant-...
-
-# CORS allowed origins (separate by comma)
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:8000
-
-# Server configuration
-HOST=0.0.0.0
-PORT=8000
-ENV=development
-```
+- **Database:** Deploy PostgreSQL (e.g., Supabase, Neon, AWS RDS).
+- **Backend:** Deploy to Render, Railway, or Heroku. 
+  - Set `DATABASE_URL`, `JWT_SECRET`, `ALLOWED_ORIGINS`, and `ANTHROPIC_API_KEY` environment variables.
+  - Make sure the build command includes `npx prisma generate`.
+- **Frontend:** Deploy to Vercel, Netlify, or Render. 
+  - Set the `VITE_API_URL` environment variable to point to your live backend URL (no trailing slash).
+- **CORS:** Ensure your backend's `ALLOWED_ORIGINS` includes your live frontend URL (e.g. `https://your-frontend.vercel.app`).
 
 ## Troubleshooting
 
-### Local Development: "Server error: 404" or API call fails
+### "Server error: 404" or API call fails
+1. Ensure both the frontend and backend are running.
+2. Check your browser console (F12) for CORS errors. If they exist, verify `ALLOWED_ORIGINS` in your backend `.env`.
+3. If deployed, ensure `VITE_API_URL` is set to the correct backend domain and not your database URL.
 
-**Step 1: Verify backend is running**
-```bash
-# In one terminal
-cd backend && python -m uvicorn main:app --reload --port 8000
-
-# In another terminal, test:
-curl http://localhost:8000/health
-# Should return: {"status":"ok",...}
-```
-
-**Step 2: Check browser console**
-1. Open http://localhost:5173
-2. Press F12 to open Developer Console
-3. Look for: `[Meesho Sakhi] API Base URL: http://localhost:8000`
-4. No CORS errors should appear
-
-**Step 3: Test API endpoint directly**
-```bash
-curl -X POST http://localhost:8000/shop \
-  -H "Content-Type: application/json" \
-  -d '{"query":"show me a backpack"}'
-
-# Should return Server-Sent Events stream, not 404
-```
-
-**Step 4: Check ANTHROPIC_API_KEY**
-```bash
-# In backend/.env, verify you have:
-ANTHROPIC_API_KEY=sk-ant-...  # Not empty!
-# Restart backend after changing
-```
-
-### Production Deployment: "Server error: 404"
-
-This means frontend can't reach the backend. **See [PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md) for detailed troubleshooting.**
-
-**Quick checklist:**
-- [ ] Backend is deployed and running: `curl https://your-backend-url/health`
-- [ ] `VITE_API_URL` is set in Vercel Environment Variables
-- [ ] Vercel frontend is redeployed after setting `VITE_API_URL`
-- [ ] Browser shows correct API URL in console: `[Meesho Sakhi] API Base URL: https://...`
-- [ ] Backend `ALLOWED_ORIGINS` includes your Vercel domain
-- [ ] ANTHROPIC_API_KEY is set in backend deployment
-
-### CORS Errors ("Access to XMLHttpRequest blocked by CORS policy")
-
-**Solution:**
-1. Go to your backend deployment
-2. Ensure `ALLOWED_ORIGINS` includes your frontend domain
-3. Example: `ALLOWED_ORIGINS=https://yourdomain.vercel.app,https://your-backend-url`
-4. Restart/redeploy backend
-
-### Mobile phone shows errors or broken layout
-
-1. **For broken layout:** Already fixed with responsive CSS
-2. **For API errors after deployment:** Same as above, check VITE_API_URL
-
-### Anthropic API errors ("Rate limit", "Invalid API key", etc.)
-
-1. Verify ANTHROPIC_API_KEY is correct: https://console.anthropic.com/
-2. Check you have quota/billing set up
-3. Monitor API usage at https://console.anthropic.com/
-4. Check backend logs for exact error message
+### Anthropic API errors ("Rate limit", "Invalid API key")
+1. Verify `ANTHROPIC_API_KEY` is correct in `backend/.env`.
+2. Check you have quota/billing set up in your Anthropic Console.
+3. Restart the backend after updating `.env` files.
 
 ## Demo Flow
 
 1. Enter: *"Help me set up my hostel room in Mumbai, budget ₹12,000"*
-2. Watch 8 agents fire live in the left panel
-3. Cart appears on the right with trust scores, savings tip, and category breakdown
+2. Watch 8 agents fire live in the left panel.
+3. Cart appears on the right with trust scores, savings tip, and category breakdown.
 
 ## Hackathon Talking Points
 
-- **Not a chatbot** — a true agentic pipeline where each agent specializes
-- **Streaming** — judges can see reasoning happen in real time
-- **Trust layer** — Review Trust Agent scores products on authenticity
-- **Budget-aware** — Selector Agent enforces per-category budgets strictly
-- **Extensible** — swap the JSON catalog for real Meesho API when available
+- **Not a chatbot** — a true agentic pipeline where each agent specializes.
+- **Streaming** — users/judges can see reasoning happen in real-time.
+- **Trust layer** — Review Trust Agent scores products on authenticity.
+- **Budget-aware** — Selector Agent enforces per-category budgets strictly.
