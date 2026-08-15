@@ -6,9 +6,15 @@ const getApiUrl = () => {
     if (envUrl) {
       return envUrl.replace(/\/$/, "");
     }
-    return "";
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname;
+      if (hostname === "localhost" || hostname === "127.0.0.1") {
+        return "http://localhost:8000";
+      }
+    }
+    return "https://meesho-sakhi.onrender.com";
   } catch (_error) {
-    return null;
+    return "https://meesho-sakhi.onrender.com";
   }
 };
 

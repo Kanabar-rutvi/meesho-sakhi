@@ -121,7 +121,7 @@ export default function Dashboard() {
 
   const baseUrl = (() => {
     const envUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "";
-    return envUrl || "http://localhost:8000";
+    return envUrl || (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:8000" : "https://meesho-sakhi.onrender.com");
   })();
 
   const getToken = () => localStorage.getItem('token');

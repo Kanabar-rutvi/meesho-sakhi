@@ -26,7 +26,7 @@ export default function Auth() {
         : { 'Content-Type': 'application/json' };
 
       const envUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "";
-      const baseUrl = envUrl || "http://localhost:8000";
+      const baseUrl = envUrl || (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:8000" : "https://meesho-sakhi.onrender.com");
       const res = await fetch(`${baseUrl}${endpoint}`, {
         method: 'POST',
         headers,

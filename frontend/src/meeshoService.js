@@ -198,7 +198,8 @@ export function openMeeshoWeb() {
 // ── Backend API ───────────────────────────────────────────────────────────────
 
 const envUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "";
-const API_BASE = `${envUrl}/meesho`;
+const resolvedUrl = envUrl || (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:8000" : "https://meesho-sakhi.onrender.com");
+const API_BASE = `${resolvedUrl}/meesho`;
 
 /**
  * Fetch the order payload from the backend.
