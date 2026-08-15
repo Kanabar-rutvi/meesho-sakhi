@@ -3,12 +3,15 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Home, User, Sparkles, ShoppingBag, Moon, Sun } from 'lucide-react';
 import { LanguageSwitcher, useLang } from '../i18n';
 import { useTheme } from '../ThemeContext';
+import { useAuth } from '../AuthContext';
 
 export default function Layout() {
   const { t } = useLang();
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -92,15 +95,57 @@ export default function Layout() {
               {link.label}
             </Link>
           ))}
-          <Link to="/auth" style={{
-            color: 'white', textDecoration: 'none', fontSize: 'clamp(12px, 2.5vw, 13px)', fontWeight: 500,
-            padding: '8px 16px', borderRadius: 'var(--radius-full)',
-            border: '1px solid rgba(255,255,255,0.3)', marginLeft: '4px',
-            transition: 'all var(--transition-fast)',
-            whiteSpace: 'nowrap'
-          }}>
-            Login
-          </Link>
+          {user ? (
+            <div style={{ position: 'relative' }}>
+              <button 
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                style={{
+                  background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', outline: 'none'
+                }}
+              >
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '50%', background: 'var(--brand-secondary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600
+                }}>
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <span style={{ color: 'white', fontSize: '14px', fontWeight: 500, display: isMobile ? 'none' : 'block' }}>
+                  {user.name}
+                </span>
+              </button>
+              
+              {dropdownOpen && (
+                <div style={{
+                  position: 'absolute', top: '100%', right: 0, marginTop: '8px',
+                  background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)',
+                  border: '1px solid var(--border-color)', minWidth: '150px', zIndex: 100, overflow: 'hidden'
+                }}>
+                  <button 
+                    onClick={() => { logout(); setDropdownOpen(false); }}
+                    style={{
+                      width: '100%', padding: '12px 16px', background: 'none', border: 'none', 
+                      textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: 'var(--text-primary)',
+                      display: 'flex', alignItems: 'center', gap: '8px'
+                    }}
+                    onMouseOver={e => e.currentTarget.style.background = 'var(--bg-subtle)'}
+                    onMouseOut={e => e.currentTarget.style.background = 'none'}
+                  >
+                    <User size={16} /> Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link to="/auth" style={{
+              color: 'white', textDecoration: 'none', fontSize: 'clamp(12px, 2.5vw, 13px)', fontWeight: 500,
+              padding: '8px 16px', borderRadius: 'var(--radius-full)',
+              border: '1px solid rgba(255,255,255,0.3)', marginLeft: '4px',
+              transition: 'all var(--transition-fast)',
+              whiteSpace: 'nowrap'
+            }}>
+              Login
+            </Link>
+          )}
         </nav>
       </header>
 

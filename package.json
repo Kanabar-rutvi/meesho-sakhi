@@ -9,7 +9,10 @@
     "install:all": "npm run install:backend && npm run install:frontend",
     "build:backend": "cd backend && npx prisma generate",
     "build:frontend": "cd frontend && npm run build",
-    "build": "npm run build:backend && npm run build:frontend"
+    "build": "npm run build:backend && npm run build:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint": "npm run lint:backend && npm run lint:frontend"
   },
   "engines": {
     "node": "20.x"

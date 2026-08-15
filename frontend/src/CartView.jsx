@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { CATEGORY_ICONS } from "./constants";
 import MeeshoOrderPanel from "./MeeshoOrderPanel";
-import { X, HeartPulse, Sparkles, CheckCircle, AlertTriangle } from 'lucide-react';
+import { useAuth } from './AuthContext';
+import { X, HeartPulse, Sparkles, CheckCircle, AlertTriangle, Heart } from 'lucide-react';
+
 
 function StarRating({ rating }) {
   return (
@@ -28,7 +30,7 @@ function TrustBadge({ score }) {
   );
 }
 
-function CartItem({ item, onShowReason }) {
+function CartItem({ item, onShowReason, onWishlist, wishlisted }) {
   const icon = CATEGORY_ICONS[item.category] || "📦";
   return (
     <div className="card animate-fade-in" style={{
@@ -83,17 +85,36 @@ function CartItem({ item, onShowReason }) {
           {item.trust_score && <TrustBadge score={item.trust_score} />}
         </div>
         
-        <button 
-          onClick={() => onShowReason(item)}
-          style={{ 
-            display: "inline-flex", alignItems: "center", gap: "6px",
-            background: "none", border: "none", 
-            color: "var(--brand-primary)", fontSize: "13px", fontWeight: 600,
-            cursor: "pointer", padding: "4px 0"
-          }}
-        >
-          <Sparkles size={14} /> Why Sakhi picked this
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+          <button 
+            onClick={() => onShowReason(item)}
+            style={{ 
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              background: "none", border: "none", 
+              color: "var(--brand-primary)", fontSize: "13px", fontWeight: 600,
+              cursor: "pointer", padding: "4px 0"
+            }}
+          >
+            <Sparkles size={14} /> Why Sakhi picked this
+          </button>
+          <button
+            onClick={() => onWishlist(item)}
+            disabled={wishlisted}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              background: wishlisted ? "rgba(236,72,153,0.08)" : "none",
+              border: wishlisted ? "1px solid rgba(236,72,153,0.3)" : "1px solid var(--slate-200)",
+              color: wishlisted ? "#ec4899" : "var(--text-secondary)",
+              fontSize: "13px", fontWeight: 600,
+              cursor: wishlisted ? "default" : "pointer",
+              padding: "4px 12px", borderRadius: "var(--radius-full)",
+              transition: "all 0.2s ease"
+            }}
+          >
+            <Heart size={14} fill={wishlisted ? "#ec4899" : "none"} />
+            {wishlisted ? "Saved" : "Wishlist"}
+          </button>
+        </div>
       </div>
 
       {/* Price */}
@@ -116,6 +137,8 @@ function CartItem({ item, onShowReason }) {
 
 export default function CartView({ checkout, goal }) {
   const [selectedItem, setSelectedItem] = useState(null);
+  const [wishlistedIds, setWishlistedIds] = useState(new Set());
+  const { user } = useAuth();
 
   if (!checkout) return null;
   const { items, total, savings_tip, summary, item_count } = checkout;
@@ -124,23 +147,102 @@ export default function CartView({ checkout, goal }) {
   const saved = budget - total;
   const utilization = budget > 0 ? Math.min(100, Math.round((total / budget) * 100)) : 0;
   
-  // Calculate Cart Health Score (0-100)
-  // Based on average trust score, budget adherence, and review count
   const avgTrust = items.reduce((sum, item) => sum + (item.trust_score || 0), 0) / (items.length || 1);
-  const budgetScore = utilization <= 100 && utilization > 0 ? 100 - Math.abs(90 - utilization) : 50; // Ideal is ~90% utilization
+  const budgetScore = utilization <= 100 && utilization > 0 ? 100 - Math.abs(90 - utilization) : 50;
   const healthScore = Math.round((avgTrust * 100 * 0.6) + (budgetScore * 0.4));
   
   const healthColor = healthScore >= 85 ? 'var(--success)' : healthScore >= 70 ? 'var(--warning)' : 'var(--error)';
 
+  const addToWishlist = async (item) => {
+    if (!user) {
+      alert("Please login to save items to your wishlist.");
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const envUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "";
+      const baseUrl = envUrl || "http://localhost:8000";
+      const res = await fetch(`${baseUrl}/user/wishlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          product_id: String(item.id),
+          name: item.name,
+          category: item.category,
+          price: item.price,
+          rating: item.rating || 4.0,
+          image_url: null
+        })
+      });
+      if (res.ok) {
+        setWishlistedIds(prev => new Set([...prev, item.id]));
+      } else {
+        const err = await res.json();
+        alert("Failed to save: " + (err.detail || "Unknown error"));
+      }
+    } catch (e) {
+      console.error("Wishlist error:", e);
+      alert("Could not save to wishlist. Check your connection.");
+    }
+  };
+
   const onShareList = () => {
-    // ... share logic (unchanged)
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
-    // ... basic print template
-    printWindow.document.write("<h1>Meesho Sakhi Shopping List</h1><p>Print function executed.</p>");
+    
+    const itemsHtml = Object.entries(byCat).map(([cat, catItems]) => `
+      <div style="margin-bottom: 20px;">
+        <h3 style="text-transform: capitalize; border-bottom: 1px solid #ddd; padding-bottom: 4px;">${cat}</h3>
+        <ul style="list-style: none; padding: 0;">
+          ${catItems.map(item => `
+            <li style="margin-bottom: 12px; display: flex; justify-content: space-between;">
+              <div>
+                <strong>${item.name}</strong><br/>
+                <small>Qty: ${item.quantity || 1} | ${item.brand || ''}</small>
+              </div>
+              <div style="font-weight: bold;">₹${item.price.toLocaleString()}</div>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+    `).join('');
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Meesho Sakhi Shopping List</title>
+          <style>
+            body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #333; }
+            h1 { color: #db2777; border-bottom: 2px solid #db2777; padding-bottom: 10px; }
+            .summary { background: #fdf2f8; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+            .total { font-size: 24px; font-weight: bold; text-align: right; margin-top: 30px; border-top: 2px solid #333; padding-top: 10px; }
+          </style>
+        </head>
+        <body>
+          <h1>Meesho Sakhi Shopping List</h1>
+          <div class="summary">
+            <strong>Goal:</strong> ${goal?.query || 'Shopping List'}<br/>
+            <strong>Budget:</strong> ₹${budget.toLocaleString()}<br/>
+            <strong>Total Cost:</strong> ₹${total.toLocaleString()}<br/>
+            <strong>Items:</strong> ${item_count}
+          </div>
+          ${itemsHtml}
+          <div class="total">Grand Total: ₹${total.toLocaleString()}</div>
+          <script>
+            window.onload = () => {
+              setTimeout(() => {
+                window.print();
+                window.onafterprint = () => window.close();
+              }, 250);
+            };
+          </script>
+        </body>
+      </html>
+    `);
     printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => printWindow.print(), 250);
   };
 
   const byCat = {};
@@ -239,17 +341,24 @@ export default function CartView({ checkout, goal }) {
                 </span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {catItems.map(item => <CartItem key={item.id} item={item} onShowReason={setSelectedItem} />)}
+                {catItems.map(item => <CartItem key={item.id} item={item} onShowReason={setSelectedItem} onWishlist={addToWishlist} wishlisted={wishlistedIds.has(item.id)} />)}
               </div>
             </div>
           ))}
         </div>
 
         {/* Footer */}
-        <div style={{ padding: "24px 32px", borderTop: "1px solid var(--slate-200)", display: "flex", gap: "16px", alignItems: "center", background: "var(--bg-subtle)" }}>
+        <div style={{ padding: "24px 32px", borderTop: "1px solid var(--slate-200)", display: "flex", gap: "16px", alignItems: "center", background: "var(--bg-subtle)", flexWrap: "wrap" }}>
           <div style={{ flex: 1 }}>
             <MeeshoOrderPanel items={items} total={total} />
           </div>
+          <button
+            onClick={() => items.forEach(item => addToWishlist(item))}
+            className="btn btn-secondary"
+            style={{ padding: "16px 24px", display: "inline-flex", alignItems: "center", gap: "8px" }}
+          >
+            <Heart size={16} /> Save All to Wishlist
+          </button>
           <button onClick={onShareList} className="btn btn-secondary" style={{ padding: "16px 24px" }}>
             Share List
           </button>
@@ -288,7 +397,7 @@ export default function CartView({ checkout, goal }) {
             
             <div style={{ background: 'var(--bg-subtle)', padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
               <p style={{ fontSize: '15px', lineHeight: 1.6, color: 'var(--text-primary)', fontStyle: 'italic' }}>
-                "{selectedItem.reason}"
+                &quot;{selectedItem.reason}&quot;
               </p>
             </div>
             

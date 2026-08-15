@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Target, Zap, CheckCircle, Shield, Star, ArrowRight, ChevronDown, ShoppingBag } from 'lucide-react';
+import { Sparkles, Target, Zap, CheckCircle, Star, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useLang } from '../i18n';
 
 const TESTIMONIALS = [
@@ -32,7 +32,7 @@ const EXAMPLE_CARTS = [
   }
 ];
 
-const FEATURES = [
+const _FEATURES = [
   {
     icon: '🎯',
     color: 'var(--brand-primary)',
@@ -110,7 +110,7 @@ export default function LandingPage() {
                   {Array.from({ length: t_item.stars }).map((_, j) => <Star key={j} size={16} color="var(--brand-primary)" fill="var(--brand-primary)" />)}
                 </div>
                 <p style={{ fontSize: '15px', lineHeight: 1.5, color: 'var(--text-secondary)', fontStyle: 'italic', marginBottom: '16px' }}>
-                  "{t_item.quote}"
+                  &quot;{t_item.quote}&quot;
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-full)', background: 'var(--bg-subtle)', color: 'var(--brand-primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px' }}>
@@ -156,7 +156,7 @@ export default function LandingPage() {
                 </div>
                 <div style={{ padding: '24px' }}>
                   <div style={{ fontSize: '13px', color: 'var(--brand-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Goal</div>
-                  <h3 style={{ fontSize: '20px', marginBottom: '16px' }}>"{cart.goal}"</h3>
+                  <h3 style={{ fontSize: '20px', marginBottom: '16px' }}>&quot;{cart.goal}&quot;</h3>
                   <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
                     <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '12px', fontWeight: 600 }}>SAKHI SELECTED:</div>
                     <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>

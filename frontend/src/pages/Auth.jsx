@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -8,6 +9,7 @@ export default function Auth() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,11 +39,28 @@ export default function Auth() {
       }
       
       const data = await res.json();
+      let tokenToSave = null;
+      
       if (isLogin) {
-        localStorage.setItem('token', data.access_token);
+        tokenToSave = data.access_token;
+      } else {
+        // If register, we could auto-login or redirect to login. Let's redirect to login for now.
+        setIsLogin(true);
+        setError("Registration successful. Please login.");
+        return;
       }
       
-      navigate('/app');
+      // Fetch user profile immediately
+      const meRes = await fetch(`${baseUrl}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${tokenToSave}` }
+      });
+      if (meRes.ok) {
+        const userData = await meRes.json();
+        login(tokenToSave, userData);
+        navigate('/app');
+      } else {
+        throw new Error("Failed to load user profile");
+      }
       
     } catch (err) {
       setError(err.message);

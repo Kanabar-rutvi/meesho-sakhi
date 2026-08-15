@@ -161,7 +161,7 @@ export default function AskSakhi() {
               <div style={{ fontSize: "64px", marginBottom: "20px", filter: "drop-shadow(0 4px 12px rgba(147, 51, 234, 0.3))" }}>🤖</div>
               <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "28px", color: "var(--text-primary)", marginBottom: "16px" }}>Ready to plan your shopping</div>
               <div style={{ color: "var(--text-secondary)", fontSize: "16px", lineHeight: 1.6, maxWidth: "400px" }}>
-                Tell Sakhi what you're trying to accomplish. Our agents will instantly build a complete, budget-optimized plan.
+                Tell Sakhi what you&apos;re trying to accomplish. Our agents will instantly build a complete, budget-optimized plan.
               </div>
             </div>
           )}

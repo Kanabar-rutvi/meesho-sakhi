@@ -20,6 +20,7 @@ model User {
   feedbacks       UserFeedback[]          @relation("UserFeedbacks")
   interactions    InteractionHistory[]    @relation("UserInteractions")
   preferences     LearnedPreferences?     @relation("UserPreferences")
+  wishlist        WishlistItem[]          @relation("UserWishlist")
 }
 
 model ShoppingGoal {
@@ -109,4 +110,17 @@ model LearnedPreferences {
   total_signals   Int      @default(0)
   updated_at      DateTime @updatedAt
   user            User     @relation("UserPreferences", fields: [user_id], references: [id])
+}
+
+model WishlistItem {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  product_id  String
+  name        String
+  category    String
+  price       Int
+  rating      Float    @default(0.0)
+  image_url   String?
+  added_at    DateTime @default(now())
+  user        User     @relation("UserWishlist", fields: [user_id], references: [id])
 }

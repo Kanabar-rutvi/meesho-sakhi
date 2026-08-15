@@ -131,7 +131,7 @@ export function buildSearchUrl(productName) {
  * @param {"android"|"ios"|"web"} platform
  * @returns {string}
  */
-export function buildProductLink(product, platform) {
+export function buildProductLink(product, _platform) {
   // Use search_url from backend if available (pre-computed)
   if (product.search_url) return product.search_url;
   return buildSearchUrl(product.name);

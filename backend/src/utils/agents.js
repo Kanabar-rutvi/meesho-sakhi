@@ -15,7 +15,7 @@ const callClaude = async (system, user) => {
       messages: [{ role: "user", content: user }]
     });
     return response.content[0].text;
-  } catch (err) {
+  } catch {
     return "";
   }
 };
@@ -25,7 +25,7 @@ const extractJson = (text) => {
   cleaned = cleaned.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
   const startObj = cleaned.indexOf("{");
   const startArr = cleaned.indexOf("[");
-  let start = -1;
+  let start;
   if (startObj !== -1 && startArr !== -1) start = Math.min(startObj, startArr);
   else if (startObj !== -1) start = startObj;
   else if (startArr !== -1) start = startArr;
@@ -34,7 +34,7 @@ const extractJson = (text) => {
   cleaned = cleaned.slice(start);
   try {
     return JSON.parse(cleaned);
-  } catch (e) {
+  } catch {
     return null;
   }
 };
@@ -138,7 +138,7 @@ export const goalAgent = async (rawInput, prefs = null) => {
   return fallback;
 };
 
-export const plannerAgent = async (goal, prefs = null) => {
+export const plannerAgent = async (goal, _prefs = null) => {
   const categories = [];
   const budgetMap = goal.budget_per_category || {};
 
@@ -237,8 +237,8 @@ export const selectorAgent = async (category, rankedProducts, budget, maxItems, 
 
   // After learning, pick with a quality_bias-aware selection:
   // quality_bias high = more premium even if fewer items
-  let bias = 0.5;
-  if (prefs && prefs.profile) bias = prefs.profile.quality_bias ?? 0.5;
+  let _bias = 0.5;
+  if (prefs && prefs.profile) _bias = prefs.profile.quality_bias ?? 0.5;
 
   // Build selection order: greedy by (rating + price fit), blended with learned scores
   const ordered = [...rankedProducts];

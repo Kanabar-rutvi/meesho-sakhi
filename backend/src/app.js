@@ -5,6 +5,8 @@ import authRoutes from './routers/auth.js';
 import shopRoutes from './routers/shop.js';
 import adminRoutes from './routers/admin.js';
 import learnRoutes from './routers/learn.js';
+import userRoutes from './routers/user.js';
+import meeshoRoutes from './routers/meesho.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
 dotenv.config();
@@ -56,6 +58,8 @@ app.use('/auth', authRoutes);
 app.use('/shop', shopRoutes);
 app.use('/admin', adminRoutes);
 app.use('/learn', learnRoutes);
+app.use('/user', userRoutes);
+app.use('/meesho', meeshoRoutes);
 
 app.use(errorHandler);
 

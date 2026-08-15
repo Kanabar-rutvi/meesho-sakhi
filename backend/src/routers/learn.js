@@ -21,7 +21,7 @@ try {
   try {
     const fallbackPath = path.resolve(__dirname, '..', 'catalog.json');
     CATALOG = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
-  } catch (_) {
+  } catch {
     console.error("[learn router] catalog not found — recommendations disabled.");
   }
 }
@@ -147,7 +147,7 @@ router.post('/interaction', optionalAuthenticate, async (req, res) => {
  */
 router.post('/score', optionalAuthenticate, async (req, res) => {
   try {
-    const { userId, sessionId } = resolveIdentity(req);
+    const { userId } = resolveIdentity(req);
     const { product_ids } = req.body || {};
     if (!Array.isArray(product_ids)) {
       return res.status(400).json({ detail: "product_ids array required" });
@@ -177,7 +177,6 @@ router.get('/insights', async (req, res) => {
       // Lazily extract user via JWT if valid, otherwise guest
       try {
         const [, token] = authHeader.split(' ');
-        const { jwt } = await import('./auth.js');
         const jwt2 = (await import('jsonwebtoken')).default;
         const SECRET_KEY = process.env.JWT_SECRET || "meesho-sakhi-super-secret-key-for-demo-purposes";
         const payload = jwt2.verify(token, SECRET_KEY);

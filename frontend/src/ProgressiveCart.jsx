@@ -517,7 +517,7 @@ export default function ProgressiveCart({
                 fontSize: '15px', lineHeight: 1.6, color: 'var(--text-primary)',
                 fontStyle: 'italic', margin: 0,
               }}>
-                "{selectedItem.reason || "Sakhi selected this based on your preferences, budget, and trust signals."}"
+                &quot;{selectedItem.reason || "Sakhi selected this based on your preferences, budget, and trust signals."}&quot;
               </p>
             </div>
 

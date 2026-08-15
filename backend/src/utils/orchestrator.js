@@ -23,6 +23,27 @@ export class AgentOrchestrator {
   async *executeFullPlan(query) {
     try {
       await this.preferences.load();
+
+      // Auto-learn from user's wishlist to improve current recommendations
+      if (this.userId) {
+        try {
+          const wishlist = await prisma.wishlistItem.findMany({ where: { user_id: this.userId } });
+          for (const item of wishlist) {
+            this.preferences._learnProduct({
+              id: item.product_id,
+              name: item.name,
+              category: item.category,
+              price: item.price,
+              rating: item.rating || 4.0,
+              tags: [],
+            }, 'save', 1);
+          }
+          if (wishlist.length > 0) await this.preferences.persist();
+        } catch (e) {
+          console.warn("[Orchestrator] Failed to learn from wishlist:", e.message);
+        }
+      }
+
       const prefInsights = this.preferences.getInsights();
 
       yield this._formatSSE("agent_start", { agent: "goal", label: "Goal Agent", message: "Understanding your shopping goal..." });
@@ -131,8 +152,6 @@ export class AgentOrchestrator {
       } catch (err) {
         console.warn("Failed to record view feedback:", err.message);
       }
-
-      let goalId = null;
       if (this.userId) {
         try {
           const dbGoal = await prisma.shoppingGoal.create({
@@ -143,7 +162,6 @@ export class AgentOrchestrator {
               status: "completed"
             }
           });
-          goalId = dbGoal.id;
 
           const dbPlan = await prisma.shoppingPlan.create({
             data: {

@@ -25,7 +25,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import {
   detectPlatform,
   detectMeeshoApp,
@@ -63,7 +63,7 @@ export function useMeeshoOrder(checkoutItems) {
     setState(newState);
   }, []);
 
-  const products = orderPayload?.products || [];
+  const products = useMemo(() => orderPayload?.products || [], [orderPayload?.products]);
   const storeLinks = orderPayload?.store_links || {};
   const integrationInfo = orderPayload?.integration || {};
   const totalAdded = addedItems.size;

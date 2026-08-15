@@ -23,7 +23,7 @@ try {
   try {
     const fallbackPath = path.resolve(__dirname, '..', 'catalog.json');
     CATALOG = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
-  } catch (_) {
+  } catch {
     console.error("[shop router] catalog not found — searches will be empty.");
   }
 }

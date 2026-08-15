@@ -7,7 +7,7 @@ const getApiUrl = () => {
       return envUrl.replace(/\/$/, "");
     }
     return "";
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 };
@@ -57,9 +57,15 @@ export function usePipeline() {
       const apiUrl = API_BASE_URL ? `${API_BASE_URL}/shop` : "/shop";
       console.log('[Meesho Sakhi] Calling API:', apiUrl);
       
+      const headers = { "Content-Type": "application/json" };
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(apiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ query })
       });
 

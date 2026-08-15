@@ -1,42 +1,46 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Clock, ChevronRight, CheckCircle, ShoppingBag, AlertCircle } from 'lucide-react';
-
-// Mock history data — in production this comes from the backend
-const MOCK_HISTORY = [
-  {
-    id: 'h1',
-    goal: 'Hostel room setup in Mumbai',
-    budget: 15000,
-    spent: 13450,
-    items: 8,
-    date: 'Today',
-    status: 'completed',
-    categories: ['bedding', 'study', 'kitchen', 'electronics']
-  },
-  {
-    id: 'h2',
-    goal: 'Diwali outfit shopping for family',
-    budget: 8000,
-    spent: 7200,
-    items: 5,
-    date: '3 days ago',
-    status: 'completed',
-    categories: ['clothing', 'accessories']
-  },
-  {
-    id: 'h3',
-    goal: 'Kitchen essentials for PG room',
-    budget: 5000,
-    spent: 0,
-    items: 0,
-    date: '1 week ago',
-    status: 'abandoned',
-    categories: ['kitchen', 'storage']
-  },
-];
+import { useAuth } from '../AuthContext';
 
 export default function History() {
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user === null) {
+      navigate('/auth');
+      return;
+    }
+    
+    if (user) {
+      const fetchHistory = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const envUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "";
+          const baseUrl = envUrl || "http://localhost:8000";
+          const res = await fetch(`${baseUrl}/user/history`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setHistory(data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch history", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchHistory();
+    }
+  }, [user, navigate]);
+
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading history...</div>;
+
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
       <div className="animate-fade-in">
@@ -45,12 +49,12 @@ export default function History() {
             <Clock size={28} color="var(--brand-primary)" /> Shopping History
           </h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
-            {MOCK_HISTORY.length} shopping plans
+            {history.length} shopping plans
           </p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {MOCK_HISTORY.map((plan, idx) => (
+          {history.map((plan, idx) => (
             <Link key={plan.id} to="/app/ask" style={{ textDecoration: 'none', color: 'inherit' }}>
               <div className="card animate-fade-in" style={{
                 display: 'flex', alignItems: 'center', gap: '16px',

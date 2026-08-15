@@ -28,7 +28,7 @@ const DEFAULT_PROFILE = {
 const DECAY = 0.985;        // each update erodes old score slightly (freshness)
 const FLOOR = -0.95;
 const CEIL  =  0.95;
-const PRICE_BUCKETS = [500, 1000, 2000, 4000, 8000];
+const _PRICE_BUCKETS = [500, 1000, 2000, 4000, 8000];
 
 function clamp(v, min = FLOOR, max = CEIL) {
   return Math.max(min, Math.min(max, v));
@@ -111,7 +111,7 @@ export class PreferenceEngine {
     const base = FEEDBACK_SIGNALS[signal] || { weight: 1.0, polarity };
     const w = base.weight * (FEEDBACK_SIGNALS[signal] ? 1 : 1);
     const pol = FEEDBACK_SIGNALS[signal] ? FEEDBACK_SIGNALS[signal].polarity : polarity;
-    const effective = pol * w * 0.08; // 8% of the signal as learning step (with polarity)
+    const _effective = pol * w * 0.08; // 8% of the signal as learning step (with polarity)
 
     if (product.category)  this._updateScoreMap(this.profile.category_scores, product.category, pol, w * 0.06);
     if (product.brand)     this._updateScoreMap(this.profile.brand_scores,    product.brand,    pol, w * 0.07);

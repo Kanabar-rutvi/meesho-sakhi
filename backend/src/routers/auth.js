@@ -68,7 +68,7 @@ router.post('/register', async (req, res) => {
       }
     });
 
-    const { hashed_password: _, ...userWithoutPassword } = user;
+    const { hashed_password: _hp, ...userWithoutPassword } = user;
     res.json(userWithoutPassword);
   } catch (error) {
     res.status(500).json({ detail: error.message });
@@ -92,6 +92,11 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     res.status(500).json({ detail: error.message });
   }
+});
+
+router.get('/me', authenticateToken, async (req, res) => {
+  const { hashed_password: _hp, ...userWithoutPassword } = req.user;
+  res.json(userWithoutPassword);
 });
 
 export default router;

@@ -1,22 +1,63 @@
-import React, { useState } from 'react';
-import { Heart, Trash2, ShoppingBag, ExternalLink } from 'lucide-react';
-
-// Mock wishlist data — in production this would come from the backend via API
-const MOCK_WISHLIST = [
-  { id: 'w1', name: 'Sleepyhead Memory Foam Pillow', price: 899, category: 'bedding', rating: 4.3, image: '🛏️', addedDate: '2 days ago' },
-  { id: 'w2', name: 'Milton Thermosteel Flask 750ml', price: 649, category: 'kitchen', rating: 4.5, image: '🍳', addedDate: '3 days ago' },
-  { id: 'w3', name: 'Wipro LED Desk Lamp 10W', price: 1299, category: 'electronics', rating: 4.1, image: '💡', addedDate: '1 week ago' },
-  { id: 'w4', name: 'Amazon Basics Foldable Laundry Bag', price: 399, category: 'storage', rating: 4.0, image: '📦', addedDate: '1 week ago' },
-];
+import React, { useState, useEffect } from 'react';
+import { Heart, Trash2 } from 'lucide-react';
+import { useAuth } from '../AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Wishlist() {
-  const [items, setItems] = useState(MOCK_WISHLIST);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const removeItem = (id) => {
+  useEffect(() => {
+    if (user === null) {
+      navigate('/auth');
+      return;
+    }
+    
+    if (user) {
+      const fetchWishlist = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const envUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "";
+          const baseUrl = envUrl || "http://localhost:8000";
+          const res = await fetch(`${baseUrl}/user/wishlist`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setItems(data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch wishlist", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchWishlist();
+    }
+  }, [user, navigate]);
+
+  const removeItem = async (id) => {
+    // Optimistic update
     setItems(prev => prev.filter(item => item.id !== id));
+    
+    // In a full implementation, you would also delete this item via API call to backend
+    /*
+    const token = localStorage.getItem('token');
+    const envUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "";
+    const baseUrl = envUrl || "http://localhost:8000";
+    await fetch(`${baseUrl}/user/wishlist/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    */
   };
 
   const totalValue = items.reduce((sum, item) => sum + item.price, 0);
+
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading wishlist...</div>;
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
@@ -36,7 +77,7 @@ export default function Wishlist() {
           <div className="card" style={{ textAlign: 'center', padding: '60px 40px' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>💜</div>
             <h2 style={{ fontSize: '20px', marginBottom: '8px' }}>Your wishlist is empty</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>Items you save from Sakhi's recommendations will appear here.</p>
+            <p style={{ color: 'var(--text-secondary)' }}>Items you save from Sakhi&apos;s recommendations will appear here.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

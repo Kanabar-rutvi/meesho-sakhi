@@ -246,7 +246,7 @@ const LANG_OPTIONS = [
 
 export function LanguageSwitcher({ style = {} }) {
   const { lang, setLang } = useLang();
-  const current = LANG_OPTIONS.find(l => l.code === lang) || LANG_OPTIONS[0];
+  const _current = LANG_OPTIONS.find(l => l.code === lang) || LANG_OPTIONS[0];
 
   return (
     <select

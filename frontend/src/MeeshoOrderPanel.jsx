@@ -14,7 +14,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useMeeshoOrder, ORDER_STATES } from "./useMeeshoOrder";
 import { openAllProductsOnMeesho } from "./meeshoService";
 import { CATEGORY_ICONS } from "./constants";
@@ -60,19 +60,7 @@ function Spinner({ size = 24, color = C.meeshoPink }) {
   );
 }
 
-function PulsingDot({ color = C.meeshoPink }) {
-  return (
-    <span style={{
-      display: "inline-block",
-      width: 8, height: 8,
-      borderRadius: "50%",
-      background: color,
-      animation: "meesho-pulse 1.4s ease-in-out infinite",
-    }} />
-  );
-}
-
-function ProgressBar({ pct, color = C.meeshoPink }) {
+function ProgressBar({ pct, _color = C.meeshoPink }) {
   return (
     <div style={{
       height: 6, background: C.slate200,
@@ -345,7 +333,7 @@ function DetectingPanel({ onSkip }) {
   );
 }
 
-function AppPromptPanel({ platform, storeLinks, onInstall, onContinueWeb }) {
+function AppPromptPanel({ platform, _storeLinks, onInstall, onContinueWeb }) {
   const isIOS = platform === "ios";
   return (
     <div style={{
@@ -561,7 +549,7 @@ function GuidePanel({
               animation: "meesho-fade-in 0.4s ease",
             }}
           >
-            ✅ I'm Done — View Summary
+            ✅ I&apos;m Done — View Summary
           </button>
         ) : (
           <>
