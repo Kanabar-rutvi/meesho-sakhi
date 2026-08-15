@@ -15,10 +15,28 @@ const app = express();
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "https://meesho-sakhii.vercel.app,http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,http://localhost:8000,http://localhost:5174")
   .split(',')
-  .map(o => o.trim());
+  .map(o => o.trim().replace(/\/$/, ""));
+
+const FORCE_ALLOWED = [
+  "https://meesho-sakhii.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:3000",
+  "http://localhost:8000",
+  "http://localhost:5174"
+];
 
 app.use(cors({
-  origin: ALLOWED_ORIGINS,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const normalized = origin.replace(/\/$/, "");
+    if (ALLOWED_ORIGINS.includes(normalized) || ALLOWED_ORIGINS.includes("*") || FORCE_ALLOWED.includes(normalized)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
