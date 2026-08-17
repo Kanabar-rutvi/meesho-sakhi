@@ -172,7 +172,7 @@ export default function Layout() {
             { to: '/', icon: Home, label: 'Home' },
             { to: '/app', icon: ShoppingBag, label: 'Plans' },
             { to: '/app/ask', icon: Sparkles, label: 'Sakhi', fab: true },
-            { to: '/auth', icon: User, label: 'Profile' },
+            { to: user ? '/app/profile' : '/auth', icon: User, label: 'Profile' },
           ].map(item => {
             const active = isActive(item.to);
             const Icon = item.icon;

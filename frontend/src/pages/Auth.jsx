@@ -8,12 +8,14 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMsg('');
     
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
@@ -46,7 +48,7 @@ export default function Auth() {
       } else {
         // If register, we could auto-login or redirect to login. Let's redirect to login for now.
         setIsLogin(true);
-        setError("Registration successful. Please login.");
+        setSuccessMsg("Registration successful. Please login.");
         return;
       }
       
@@ -79,6 +81,12 @@ export default function Auth() {
         {error && (
           <div style={{ padding: '12px', background: 'var(--bg-subtle)', color: 'var(--error)', borderRadius: 'var(--radius-sm)', marginBottom: '16px', fontSize: '14px', textAlign: 'center' }}>
             {error}
+          </div>
+        )}
+
+        {successMsg && (
+          <div style={{ padding: '12px', background: 'rgba(34, 197, 94, 0.1)', color: '#15803d', borderRadius: 'var(--radius-sm)', marginBottom: '16px', fontSize: '14px', textAlign: 'center', border: '1px solid #bbf7d0' }}>
+            {successMsg}
           </div>
         )}
         

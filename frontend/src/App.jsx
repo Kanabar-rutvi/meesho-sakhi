@@ -10,6 +10,7 @@ import AskSakhi from './pages/AskSakhi';
 import Auth from './pages/Auth';
 import Wishlist from './pages/Wishlist';
 import History from './pages/History';
+import Profile from './pages/Profile';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
                 <Route path="app/ask" element={<AskSakhi />} />
                 <Route path="app/wishlist" element={<Wishlist />} />
                 <Route path="app/history" element={<History />} />
+                <Route path="app/profile" element={<Profile />} />
               </Route>
             </Routes>
           </BrowserRouter>
