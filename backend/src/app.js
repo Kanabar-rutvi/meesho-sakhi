@@ -75,24 +75,16 @@ app.get('/', (req, res) => {
 
 app.get('/health', async (req, res) => {
   let dbStatus = "connected";
-  let dbError = null;
   try {
     await prisma.$queryRaw`SELECT 1`;
   } catch (err) {
     dbStatus = "disconnected";
-    dbError = err.message || String(err);
   }
 
   const isOk = dbStatus === "connected";
-  const dbUrl = process.env.DATABASE_URL || '';
-  const maskedUrl = dbUrl ? dbUrl.replace(/:([^:@]+)@/, ':***@') : null;
-
   res.status(isOk ? 200 : 503).json({
     status: isOk ? "ok" : "degraded",
     database: dbStatus,
-    db_error: dbError,
-    has_db_url: !!process.env.DATABASE_URL,
-    db_url_masked: maskedUrl,
     version: "2.0.0",
     features: ["8-agent-pipeline", "auth-jwt", "sse-streaming", "conversational-refinement", "node-js-backend", "learning-preference-model"]
   });
