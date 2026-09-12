@@ -1,141 +1,290 @@
 # 🛍️ Meesho Sakhi — AI Shopping Companion
 
-A multi-agent AI prototype built for intelligent shopping orchestration.  
-**Real Claude API calls. Real agent orchestration. Real-time streaming pipeline.**
+[![Live Frontend](https://img.shields.io/badge/Live%20Frontend-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://meesho-sakhii.vercel.app)
+[![Backend API](https://img.shields.io/badge/Live%20API-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://meesho-sakhi.onrender.com)
+[![Database](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+[![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 
-## Architecture
+> **Meesho Sakhi** is a next-generation AI shopping assistant and e-commerce marketplace platform. Built with an **8-agent LLM orchestration pipeline**, **Catalog Intelligence engine**, **Hybrid Search**, and **dynamic personalization**, Sakhi transforms online shopping from static search-and-scroll into an intuitive, goal-driven conversational experience.
+
+---
+
+## 🚀 Live Demo & Links
+
+- **Frontend Application**: [https://meesho-sakhii.vercel.app](https://meesho-sakhii.vercel.app)
+- **Backend Health Check**: [https://meesho-sakhi.onrender.com/health](https://meesho-sakhi.onrender.com/health)
+
+---
+
+## 🌟 Key Features
+
+### 1. 🧠 Multi-Agent AI Shopping Pipeline
+- **Specialized Multi-Agent Orchestration**: Deconstructs user intent across 8 distinct agents rather than relying on a single prompt.
+- **Real-Time Streaming**: Live streaming of agent reasoning steps directly to the frontend via Server-Sent Events (SSE).
+- **Budget & Constraint Enforcement**: Strict budget allocation and category-specific financial breakdown.
+- **Review Authenticity Scoring**: Automated Review Trust Agent calculates confidence and authenticity scores on customer reviews.
+
+### 2. 🏪 Real Marketplace Catalog (130+ Curated Products)
+- Comprehensive catalog spanning **5 major categories**:
+  - 👗 **Fashion & Apparel**: Kurtas, sarees, ethnic wear, streetwear, jackets, denim.
+  - ⚡ **Electronics & Gadgets**: Wireless earbuds, smartwatches, keyboards, power banks.
+  - 🏡 **Home & Living**: Bedsheets, lamps, aroma diffusers, kitchen appliances.
+  - 💄 **Beauty & Personal Care**: Vitamin C serums, sunscreens, matte lipsticks, haircare.
+  - 🎒 **Accessories & Footwear**: Running sneakers, leather wallets, polarized sunglasses, canvas backpacks.
+- **1:1 Image Uniqueness**: Every single product features a distinct, high-resolution primary image.
+- **Zero Cross-Category Contamination**: Strict semantic matching guarantees product visual accuracy.
+
+### 3. 🔍 Hybrid Search & Intelligent Filtering
+- **Natural Language Parsing**: Translates queries like *"casual sneakers for men under 1500"* into structured filters (category, tags, budget, rating).
+- **Multi-Factor Ranking**: Ranks candidate items using semantic relevance, user price affinity, discount weighting, and verified ratings.
+
+### 4. 🎯 Preference Learning & Personalization
+- **Behavioral Event Tracking**: Captures user interactions (views, cart additions, purchases, searches).
+- **Dynamic Affinity Profiling**: Adjusts recommendation scoring based on user category affinity, brand preference, and price comfort zones.
+
+### 5. 🔐 Full-Featured User Experience
+- **Authentication**: JWT-based session security with bcrypt password hashing.
+- **Password Recovery**: Integrated Nodemailer email delivery via secure SMTP.
+- **Commerce Features**: Persistent cart, interactive wishlist/saved items, live checkout flow, and category filtering.
+- **Responsive Design**: Designed for both mobile screens and desktop viewports with dark mode support.
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TD
+    User([User Query / Message]) --> Router[Intent Router]
+    
+    subgraph Pipeline [8-Agent Orchestration Pipeline]
+        Router --> Goal[Goal Agent]
+        Goal --> Planner[Planner Agent]
+        
+        subgraph CategoryLevel [Per-Category Processing]
+            Planner --> Filter[Filter Agent]
+            Filter --> Ranker[Ranker Agent]
+            Ranker --> Selector[Selector Agent]
+        end
+        
+        Selector --> Trust[Review Trust Agent]
+        Trust --> Reco[Recommendation Agent]
+        Reco --> Checkout[Checkout Agent]
+    end
+    
+    subgraph DataServices [Catalog & Data Layer]
+        Selector -.-> HybridSearch[Hybrid Search Engine]
+        HybridSearch -.-> CatalogDB[(Supabase PostgreSQL)]
+        Reco -.-> Personalization[Preference Learning Model]
+    end
+    
+    Checkout --> SSE[Server-Sent Events Stream]
+    SSE --> UI[Responsive React UI & Live Cart]
+```
+
+### The 8-Agent Pipeline Breakdown
+1. **Goal Agent**: Identifies overarching shopping intent, occasion, and constraints.
+2. **Planner Agent**: Deconstructs shopping goals into targeted per-category budgets and sub-queries.
+3. **Filter Agent**: Evaluates catalog items against hard attributes (size, material, category, specifications).
+4. **Ranker Agent**: Scores candidate products against semantic relevance and user preference history.
+5. **Selector Agent**: Selects the optimal basket maximizing value within specified budget constraints.
+6. **Review Trust Agent**: Analyzes customer feedback to compute authenticity and trust scores.
+7. **Recommendation Agent**: Formulates companion recommendations, savings tips, and styling advice.
+8. **Checkout Agent**: Packages items into an actionable cart with total savings and breakdown.
+
+---
+
+## 💻 Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Frontend** | React 18, Vite | High-performance, reactive single-page app |
+| **Icons & UI** | Lucide React, Canvas Confetti | Modern UI components & micro-interactions |
+| **Backend** | Node.js (ES Modules), Express | REST API, SSE streaming, authentication |
+| **Database & ORM** | PostgreSQL (Supabase), Prisma ORM | Relational data persistence with connection pooling |
+| **AI / LLM** | Anthropic Claude 3.5 Sonnet | Agent reasoning and natural language processing |
+| **Email Service** | Nodemailer (SMTP) | Transactional verification and password recovery |
+| **Validation** | Zod, Custom Vision Providers | Request schema validation & catalog integrity |
+| **Testing** | Node.js Test Runner | 11 comprehensive automated test suites |
+| **Deployment** | Vercel (Frontend), Render (Backend) | Global Edge CDN & managed Node.js container |
+
+---
+
+## 📁 Repository Structure
 
 ```
-User Query → [Goal Agent] → [Planner Agent] → per-category:
-                                                 [Filter Agent]
-                                                 [Ranker Agent]
-                                                 [Selector Agent]
-                           → [Review Trust Agent]
-                           → [Recommendation Agent]
-                           → [Checkout Agent]
-                                               → Live Cart
+meesho-sakhi/
+├── backend/
+│   ├── prisma/
+│   │   ├── schema.prisma            # Prisma schema (User, Product, Order, Interaction)
+│   │   └── seed.js                  # Database seed script
+│   ├── src/
+│   │   ├── config/                  # Environment & app configurations
+│   │   ├── controllers/             # Auth, User, Shop, Product controllers
+│   │   ├── data/                    # Clean marketplace catalog data
+│   │   ├── middlewares/             # JWT auth, rate limiter, error handling
+│   │   ├── routers/                 # Express API routes
+│   │   ├── services/
+│   │   │   ├── catalogIntelligence/ # Vision providers, image validators, confidence scorer
+│   │   │   ├── hybridSearchService.js
+│   │   │   ├── personalizationService.js
+│   │   │   ├── rankingService.js
+│   │   │   └── recommendationService.js
+│   │   ├── utils/                   # Database client, token generator, email service
+│   │   ├── app.js                   # Express application setup
+│   │   └── index.js                 # Server entrypoint
+│   └── tests/                       # 11 automated test suites
+├── frontend/
+│   ├── src/
+│   │   ├── components/              # Navbar, ProductCard, Footer, Modals
+│   │   ├── pages/                   # Home, Explore, Assistant, Auth, Profile, Wishlist
+│   │   ├── services/                # API client, SSE stream listener
+│   │   ├── App.jsx                  # Main router and state providers
+│   │   └── main.jsx                 # Vite application entrypoint
+│   ├── index.html
+│   └── vite.config.js
+├── package.json                     # Monorepo root scripts
+└── README.md                        # Documentation
 ```
 
-Each of the 8 agents makes a **real Claude API call** with a strict JSON contract.  
-Results stream live to the UI via Server-Sent Events (SSE).
+---
 
-## Tech Stack
+## 🛠️ Local Development Setup
 
-| Layer | Tech |
-|-------|------|
-| **Frontend** | React + Vite |
-| **Backend** | Node.js (Express) + Prisma ORM + PostgreSQL |
-| **AI** | Claude 3.5 Sonnet (Anthropic API) |
-| **Streaming**| Server-Sent Events (SSE) |
-| **Monorepo** | npm workspaces / root scripts |
+### Prerequisites
+- **Node.js**: v18.0.0 or higher (`node -v`)
+- **npm**: v9.0.0 or higher (`npm -v`)
+- **PostgreSQL**: Local instance or remote Supabase/Neon connection URL
 
-## Setup
+---
 
-### Quickstart — Local Development
-
-#### Prerequisites
-- Node.js 18+ and npm
-- PostgreSQL database (running locally or remote)
-- Anthropic API key (get from https://console.anthropic.com/)
-
-#### 1. Global Install & Build
-
-From the root directory of the project, you can install and build everything at once:
-
+### Step 1: Clone Repository & Install Dependencies
 ```bash
+git clone https://github.com/Kanabar-rutvi/meesho-sakhi.git
+cd meesho-sakhi
+
 # Install dependencies for both frontend and backend
 npm run install:all
-
-# Generate Prisma Client & Build Frontend (Optional for dev)
-npm run build
 ```
 
-#### 2. Backend Setup & Database
+---
 
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Create your `.env` file (you can copy from a template if one exists, or create a new one):
-   ```bash
-   DATABASE_URL="postgresql://username:password@localhost:5432/meesho-sakhi?schema=public"
-   JWT_SECRET="your-super-secret-jwt-key"
-   ALLOWED_ORIGINS="http://localhost:5173"
-   PORT=8000
-   ANTHROPIC_API_KEY="sk-ant-..." # Your Anthropic Key
-   ```
-3. Initialize the database and run seeds:
-   ```bash
-   # Push schema to your Postgres database
-   npx prisma db push
-   
-   # Run the seed script to populate products/data (if applicable)
-   npx prisma db seed
-   ```
-4. Start the backend development server:
-   ```bash
-   npm run dev
-   # Expected: Server running on http://localhost:8000
-   ```
+### Step 2: Configure Environment Variables
 
-#### 3. Frontend Setup
+#### Backend (`backend/.env`)
+Create `backend/.env` with the following variables:
+```env
+# Database connection (Prisma / Supabase pooler)
+DATABASE_URL="postgresql://postgres:password@localhost:5432/meesho_sakhi?schema=public"
+DIRECT_URL="postgresql://postgres:password@localhost:5432/meesho_sakhi?schema=public"
 
-In a new terminal:
+# Authentication
+JWT_SECRET="your-256-bit-secret"
+CONVERSATION_ENCRYPTION_KEY="your-encryption-key"
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Set up your `.env` file (if you are deploying, otherwise Vite proxy handles `localhost`):
-   ```bash
-   VITE_API_URL=http://localhost:8000
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   # Expected: ➜  Local:   http://localhost:5173/
-   ```
+# Server Configuration
+PORT=8000
+ALLOWED_ORIGINS="http://localhost:5173,http://localhost:3000,http://localhost:8000"
 
-#### 4. Code Quality & Linting
+# Optional: Anthropic Claude API (Runs on intelligent fallback if omitted)
+ANTHROPIC_API_KEY="sk-ant-..."
 
-You can run ESLint across the entire monorepo from the root:
+# Optional: Email Service for Password Resets
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
+SMTP_FROM="your-email@gmail.com"
+```
+
+#### Frontend (`frontend/.env`)
+Create `frontend/.env`:
+```env
+VITE_API_URL=http://localhost:8000
+```
+
+---
+
+### Step 3: Initialize Database
 ```bash
-# Lints both backend and frontend
-npm run lint
+cd backend
+
+# Push schema to database
+npx prisma db push
+
+# Generate Prisma client
+npx prisma generate
+
+# Seed product catalog
+npx prisma db seed
+cd ..
 ```
 
-## Production Deployment
+---
 
-**Quick Summary:**
-- **Database:** Deploy PostgreSQL (e.g., Supabase, Neon, AWS RDS).
-- **Backend:** Deploy to Render, Railway, or Heroku. 
-  - Set `DATABASE_URL`, `JWT_SECRET`, `ALLOWED_ORIGINS`, and `ANTHROPIC_API_KEY` environment variables.
-  - Make sure the build command includes `npx prisma generate`.
-- **Frontend:** Deploy to Vercel, Netlify, or Render. 
-  - Set the `VITE_API_URL` environment variable to point to your live backend URL (no trailing slash).
-- **CORS:** Ensure your backend's `ALLOWED_ORIGINS` includes your live frontend URL (e.g. `https://your-frontend.vercel.app`).
+### Step 4: Run Development Servers
 
-## Troubleshooting
+**Run backend and frontend concurrently** from root:
+```bash
+# Terminal 1: Backend
+cd backend
+npm run dev
+# Server running at http://localhost:8000
 
-### "Server error: 404" or API call fails
-1. Ensure both the frontend and backend are running.
-2. Check your browser console (F12) for CORS errors. If they exist, verify `ALLOWED_ORIGINS` in your backend `.env`.
-3. If deployed, ensure `VITE_API_URL` is set to the correct backend domain and not your database URL.
+# Terminal 2: Frontend
+cd frontend
+npm run dev
+# Application running at http://localhost:5173
+```
 
-### Anthropic API errors ("Rate limit", "Invalid API key")
-1. Verify `ANTHROPIC_API_KEY` is correct in `backend/.env`.
-2. Check you have quota/billing set up in your Anthropic Console.
-3. Restart the backend after updating `.env` files.
+---
 
-## Demo Flow
+## 🧪 Testing
 
-1. Enter: *"Help me set up my hostel room in Mumbai, budget ₹12,000"*
-2. Watch 8 agents fire live in the left panel.
-3. Cart appears on the right with trust scores, savings tip, and category breakdown.
+The backend includes **11 end-to-end and unit test suites**:
+```bash
+cd backend
+npm test
+```
 
-## Hackathon Talking Points
+### Verified Test Suites:
+1. `test_catalog.js` — Catalog schema and product structure validation.
+2. `test_catalog_architecture.js` — Architecture boundaries and ingestion flows.
+3. `test_product_search_service.js` — Query matching and filter accuracy.
+4. `test_intent_router.js` — User intent classification.
+5. `test_conversation_context.js` — Multi-turn conversation state retention.
+6. `test_recommendation_architecture.js` — Recommendation generation and fallback logic.
+7. `test_catalog_validation.js` — Image confidence scoring and duplicate detection.
+8. `test_real_marketplace_catalog.js` — 1:1 image uniqueness and zero cross-category contamination.
+9. `test_hybrid_search.js` — Natural language parsing, budget, and rating constraints.
+10. `test_ranking_service.js` — Multi-factor ranking computation.
+11. `test_personalization_service.js` — Affinity scoring and interaction tracking.
 
-- **Not a chatbot** — a true agentic pipeline where each agent specializes.
-- **Streaming** — users/judges can see reasoning happen in real-time.
-- **Trust layer** — Review Trust Agent scores products on authenticity.
-- **Budget-aware** — Selector Agent enforces per-category budgets strictly.
+---
+
+## 🚢 Deployment
+
+### Frontend (Vercel)
+1. Import repository on [Vercel](https://vercel.com).
+2. Set Root Directory to `frontend`.
+3. Set Environment Variable:
+   - `VITE_API_URL`: Your live backend URL (e.g., `https://meesho-sakhi.onrender.com`).
+4. Deploy!
+
+### Backend (Render)
+1. Create a **Web Service** on [Render](https://render.com) connected to the repository.
+2. Set Root Directory to `backend`.
+3. Set Build Command: `npm install && npx prisma generate`
+4. Set Start Command: `node src/index.js`
+5. Configure Environment Variables in Render Dashboard:
+   - `DATABASE_URL`: Transaction-mode pooler URL (IPv4-compatible).
+   - `JWT_SECRET`: Random secure string.
+   - `ALLOWED_ORIGINS`: Comma-separated list including your Vercel URL.
+   - `ANTHROPIC_API_KEY`: *(Optional)* Anthropic API key.
+
+---
+
+## 📄 License
+
+This project is open-source and available under the [ISC License](LICENSE).
