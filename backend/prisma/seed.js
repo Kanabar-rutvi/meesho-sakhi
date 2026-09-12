@@ -3,6 +3,11 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    console.error("ERROR: Cannot run seed script in production. This script deletes all data.");
+    process.exit(1);
+  }
+
   console.log('Seeding data...');
   
   // Clear existing data (optional, but requested by user to "empty and again seed")

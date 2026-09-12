@@ -16,12 +16,24 @@ model User {
   name            String?
   role            String         @default("user")
   is_active       Boolean        @default(true)
+  email_verified  Boolean        @default(false)
   created_at      DateTime       @default(now())
   goals           ShoppingGoal[]
   feedbacks       UserFeedback[]          @relation("UserFeedbacks")
   interactions    InteractionHistory[]    @relation("UserInteractions")
   preferences     LearnedPreferences?     @relation("UserPreferences")
   wishlist        WishlistItem[]          @relation("UserWishlist")
+  activityLogs    ActivityLog[]
+}
+
+model EmailVerification {
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  otp_hash       String
+  expires_at     DateTime
+  attempts       Int      @default(0)
+  last_resend_at DateTime @default(now())
+  created_at     DateTime @default(now())
 }
 
 model ShoppingGoal {
@@ -125,3 +137,28 @@ model WishlistItem {
   added_at    DateTime @default(now())
   user        User     @relation("UserWishlist", fields: [user_id], references: [id])
 }
+
+model ActivityLog {
+  id              Int      @id @default(autoincrement())
+  user_id         Int?
+  conversation_id String?
+  event_type      String
+  intent          String?
+  message_summary String?
+  metadata        String?
+  created_at      DateTime @default(now())
+  request_id      String?
+  duration_ms     Int?
+  success         Boolean?
+  user            User?    @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([event_type])
+  @@index([created_at])
+  @@index([conversation_id])
+  @@index([request_id])
+  @@index([user_id, created_at])
+  @@index([intent, created_at])
+  @@index([event_type, created_at])
+}
+

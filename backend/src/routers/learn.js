@@ -1,30 +1,9 @@
 import express from 'express';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { PreferenceEngine } from '../utils/preferenceEngine.js';
 import { optionalAuthenticate } from './auth.js';
+import CATALOG, { getProductById } from '../utils/catalog.js';
 
 const router = express.Router();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Lazy-load catalog — resolve relative to THIS file, not process.cwd().
-// Critical for Vercel serverless where cwd is the lambda root.
-let CATALOG = [];
-try {
-  const catalogPath = path.resolve(__dirname, '..', '..', 'catalog.json');
-  CATALOG = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
-} catch (e) {
-  console.error("[learn router] Failed to load catalog.json:", e.message);
-  try {
-    const fallbackPath = path.resolve(__dirname, '..', 'catalog.json');
-    CATALOG = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
-  } catch {
-    console.error("[learn router] catalog not found — recommendations disabled.");
-  }
-}
 
 // Optional auth (guest sessions with session_id also allowed)
 const resolveIdentity = (req) => {
@@ -156,7 +135,7 @@ router.post('/score', optionalAuthenticate, async (req, res) => {
     await engine.load();
     const scores = {};
     for (const pid of product_ids) {
-      const product = CATALOG.find(p => p.id === pid);
+      const product = getProductById(pid);
       scores[pid] = product ? engine.scoreProduct(product) : 0;
     }
     res.json({ scores, insights: engine.getInsights() });
@@ -178,7 +157,10 @@ router.get('/insights', async (req, res) => {
       try {
         const [, token] = authHeader.split(' ');
         const jwt2 = (await import('jsonwebtoken')).default;
-        const SECRET_KEY = process.env.JWT_SECRET || "meesho-sakhi-super-secret-key-for-demo-purposes";
+        if (!process.env.JWT_SECRET) {
+          throw new Error("JWT_SECRET is not configured");
+        }
+        const SECRET_KEY = process.env.JWT_SECRET;
         const payload = jwt2.verify(token, SECRET_KEY);
         const prisma = (await import('../utils/db.js')).default;
         const user = await prisma.user.findUnique({ where: { email: payload.sub } });

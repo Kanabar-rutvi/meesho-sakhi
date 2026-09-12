@@ -1,25 +1,63 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 
+// ─── API URL resolver ────────────────────────────────────────────────────────
 const getApiUrl = () => {
   try {
     const envUrl = import.meta.env.VITE_API_URL;
-    if (envUrl) {
-      return envUrl.replace(/\/$/, "");
-    }
+    if (envUrl) return envUrl.replace(/\/$/, "");
     if (typeof window !== "undefined") {
       const hostname = window.location.hostname;
-      if (hostname === "localhost" || hostname === "127.0.0.1") {
-        return "http://localhost:8000";
-      }
+      if (hostname === "localhost" || hostname === "127.0.0.1") return "http://localhost:8000";
     }
     return "https://meesho-sakhi.onrender.com";
-  } catch (_error) {
+  } catch {
     return "https://meesho-sakhi.onrender.com";
   }
 };
 
 const API_BASE_URL = getApiUrl();
-console.log("[Meesho Sakhi] API Base URL:", API_BASE_URL === null ? "NULL (ERROR)" : (API_BASE_URL === "" ? "(relative / Vite proxy)" : API_BASE_URL));
+
+// ─── User-friendly error mapping ─────────────────────────────────────────────
+function mapPipelineError(status, errorObj, rawMessage) {
+  // Try to extract from standardized error format
+  const code = errorObj?.error?.code || errorObj?.code || '';
+  const serverMsg = errorObj?.error?.message || errorObj?.message || '';
+
+  // Code-based mapping
+  if (code === 'UNAUTHORIZED' || code === 'TOKEN_EXPIRED') return "Your session has expired. Please sign in again.";
+  if (code === 'UNVERIFIED_ACCOUNT') return "Please verify your email before using Sakhi.";
+  if (code === 'RATE_LIMITED') return "You've reached your AI usage limit. Please try again later.";
+  if (code === 'DUPLICATE_REQUEST') return "You already have an active shopping request. Please wait for it to complete.";
+  if (code === 'VALIDATION_ERROR') return serverMsg || "Please enter a valid shopping request.";
+  if (code === 'SERVICE_UNAVAILABLE' || code === 'PROVIDER_RATE_LIMITED') return "Sakhi is temporarily unavailable. Please try again shortly.";
+  if (code === 'TIMEOUT') return "The request timed out. Please try again.";
+  if (code === 'PIPELINE_ERROR') return "Something went wrong while planning your cart. Please try again.";
+
+  // Status-based fallback
+  if (status === 401) return "Your session has expired. Please sign in again.";
+  if (status === 403) return "Please verify your email before using Sakhi.";
+  if (status === 429) return "You've reached your AI usage limit. Please try again later.";
+  if (status === 409) return "You already have an active request. Please wait.";
+  if (status === 503 || status === 502) return "Sakhi is temporarily unavailable. Please try again shortly.";
+  if (status >= 500) return "Something went wrong on our side. Please try again.";
+  if (status === 0 || !status) return "Unable to connect to Sakhi. Check your internet connection and try again.";
+
+  // Raw message cleanup (never show raw JSON or stack traces)
+  if (rawMessage) {
+    if (rawMessage.includes('Failed to fetch') || rawMessage.includes('NetworkError') || rawMessage.includes('ECONNREFUSED')) {
+      return "Unable to connect to Sakhi. Check your internet connection and try again.";
+    }
+    if (rawMessage.includes('timeout') || rawMessage.includes('ETIMEDOUT')) {
+      return "The request timed out. Please try again.";
+    }
+    // Don't return raw messages that look like JSON or contain technical details
+    if (rawMessage.startsWith('{') || rawMessage.startsWith('[') || rawMessage.includes('Error:') || rawMessage.includes('at ')) {
+      return "Something went wrong. Please try again.";
+    }
+  }
+
+  return "Something went wrong. Please try again.";
+}
 
 export function usePipeline() {
   const [status, setStatus] = useState("idle"); // idle | running | done | error
@@ -30,14 +68,25 @@ export function usePipeline() {
   const [error, setError] = useState(null);
 
   // Progressive streaming state (live-updating list)
-  const [streamingExpected, setStreamingExpected] = useState(null); // {categories, budget_total}
-  const [streamingItems, setStreamingItems] = useState([]);         // items found so far (real data)
-  const [streamingTotal, setStreamingTotal] = useState(0);          // running price total
-  const [streamingCount, setStreamingCount] = useState(0);          // running item count
-  const [trustScores, setTrustScores] = useState({});               // product_id -> {trust_score, trust_reason}
-  const [itemReasons, setItemReasons] = useState({});               // product_id -> {reason, quantity}
+  const [streamingExpected, setStreamingExpected] = useState(null);
+  const [streamingItems, setStreamingItems] = useState([]);
+  const [streamingTotal, setStreamingTotal] = useState(0);
+  const [streamingCount, setStreamingCount] = useState(0);
+  const [trustScores, setTrustScores] = useState({});
+  const [itemReasons, setItemReasons] = useState({});
+
+  // Idempotency: prevent duplicate requests & track seen event IDs
+  const runningRef = useRef(false);
+  const seenEventIds = useRef(new Set());
+  const abortControllerRef = useRef(null);
+  const conversationIdRef = useRef(null);
 
   const run = useCallback(async (query) => {
+    // Prevent duplicate concurrent requests
+    if (runningRef.current) return;
+    runningRef.current = true;
+
+    // Reset all state
     setStatus("running");
     setAgents({});
     setAgentOrder([]);
@@ -50,56 +99,62 @@ export function usePipeline() {
     setStreamingCount(0);
     setTrustScores({});
     setItemReasons({});
+    seenEventIds.current.clear();
+
+    // Create abort controller for cleanup
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     try {
-      if (API_BASE_URL === null) {
-        throw new Error(
-          "Backend API URL is not configured. " +
-          "For production, set VITE_API_URL environment variable and rebuild. " +
-          "For local development, make sure the backend is running on http://localhost:8000"
-        );
+      if (!API_BASE_URL) {
+        throw { status: 0, friendlyMessage: "Backend is not configured. Please set VITE_API_URL." };
       }
 
-      const apiUrl = API_BASE_URL ? `${API_BASE_URL}/shop` : "/shop";
-      console.log('[Meesho Sakhi] Calling API:', apiUrl);
-      
+      const apiUrl = `${API_BASE_URL}/shop`;
       const headers = { "Content-Type": "application/json" };
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const requestId = crypto.randomUUID();
+      headers["X-Request-Id"] = requestId;
+
+      const bodyPayload = { query };
+      if (conversationIdRef.current) {
+        bodyPayload.conversation_id = conversationIdRef.current;
       }
 
       const response = await fetch(apiUrl, {
         method: "POST",
         headers,
-        body: JSON.stringify({ query })
+        body: JSON.stringify(bodyPayload),
+        signal: abortController.signal,
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[Meesho Sakhi] API Error Response:', response.status, errorText);
-        
-        // Provide helpful error messages
-        if (response.status === 404) {
-          const displayUrl = API_BASE_URL || "(Vite proxy / relative)";
-          throw new Error(
-            `Backend endpoint not found (404). ` +
-            `Verify VITE_API_URL is correct: ${displayUrl} ` +
-            `and the backend is running on port 8000.`
-          );
-        } else if (response.status === 500) {
-          throw new Error(`Backend server error: ${errorText || "Internal Server Error"}`);
-        } else {
-          throw new Error(`Server error: ${response.status}${errorText ? ` - ${errorText}` : ""}`);
-        }
+        let errData = {};
+        try { errData = await response.json(); } catch { /* ignore parse failure */ }
+        const friendlyMessage = mapPipelineError(response.status, errData);
+        throw { status: response.status, friendlyMessage };
       }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      let streamComplete = false;
 
       while (true) {
-        const { done, value } = await reader.read();
+        let readResult;
+        try {
+          readResult = await reader.read();
+        } catch (readError) {
+          // Stream read error (network disconnect, etc.)
+          if (abortController.signal.aborted) break; // intentional abort
+          throw { status: 0, friendlyMessage: "Connection to Sakhi was lost. Please try again." };
+        }
+
+        const { done, value } = readResult;
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
@@ -110,15 +165,44 @@ export function usePipeline() {
           if (!line.trim().startsWith("data: ")) continue;
           try {
             const event = JSON.parse(line.slice(line.indexOf("data: ") + 6));
+
+            // Dedup by event_id (if present)
+            if (event.event_id !== undefined) {
+              if (seenEventIds.current.has(event.event_id)) continue;
+              seenEventIds.current.add(event.event_id);
+            }
+
             handleEvent(event);
-          } catch (e) {
-            console.warn("[Meesho Sakhi] Failed to parse SSE event:", e);
+            if (event.type === 'stream_end' || event.type === 'complete') {
+              streamComplete = true;
+            }
+          } catch (parseErr) {
+            // Malformed SSE event — log and skip, don't crash
+            console.warn("[Sakhi] Skipping malformed SSE event:", line.slice(0, 100));
           }
         }
       }
+
+      // If stream ended without a 'complete' event, that's an incomplete pipeline
+      if (!streamComplete && status !== 'done') {
+        // Check if we got any items at all
+        // Don't error if we already transitioned to 'done' via handleEvent
+      }
+
     } catch (e) {
-      setError(e.message);
+      if (e?.name === 'AbortError' || abortController.signal.aborted) {
+        // User-initiated abort — silently reset
+        setStatus("idle");
+        runningRef.current = false;
+        return;
+      }
+
+      const friendlyMessage = e?.friendlyMessage || mapPipelineError(e?.status, null, e?.message);
+      setError(friendlyMessage);
       setStatus("error");
+    } finally {
+      runningRef.current = false;
+      abortControllerRef.current = null;
     }
   }, []);
 
@@ -136,22 +220,25 @@ export function usePipeline() {
         ...prev,
         [agent]: { ...prev[agent], state: "done", result }
       }));
+    } else if (type === "agent_error") {
+      // Optional agent failed — mark it but don't crash the pipeline
+      setAgents(prev => ({
+        ...prev,
+        [agent]: { ...prev[agent], state: "error", message: event.message || "This step encountered an issue." }
+      }));
     } else if (type === "cart_expected") {
-      // Frontend can pre-render skeleton sections for each category
       setStreamingExpected({
         categories: event.categories || [],
         budget_total: event.budget_total || 0,
       });
     } else if (type === "item_found") {
-      // An item has been selected — add to the live list IMMEDIATELY
       setStreamingItems(prev => {
-        if (prev.some(p => p.id === event.item.id)) return prev;
+        if (prev.some(p => p.id === event.item.id)) return prev; // dedup
         return [...prev, event.item];
       });
       setStreamingTotal(event.running_total || 0);
       setStreamingCount(event.running_count || 0);
     } else if (type === "item_trusted") {
-      // Review agent finished vetting this product — add trust badge
       setTrustScores(prev => ({
         ...prev,
         [event.product_id]: {
@@ -160,7 +247,6 @@ export function usePipeline() {
         }
       }));
     } else if (type === "item_reasoned") {
-      // Recommend agent added a "why Sakhi picked this" reason
       setItemReasons(prev => ({
         ...prev,
         [event.product_id]: {
@@ -173,12 +259,26 @@ export function usePipeline() {
       setGoal(event.goal);
       setStatus("done");
     } else if (type === "error") {
-      setError(event.message);
+      // Error event from SSE stream
+      const msg = event.error?.message || event.message || "Something went wrong.";
+      setError(mapPipelineError(null, event.error || event, msg));
       setStatus("error");
     }
+    if (event.conversation_id) {
+      conversationIdRef.current = event.conversation_id;
+    }
+    // 'connected' and 'stream_end' are informational — no state change needed
   }
 
   const reset = useCallback(() => {
+    // Abort any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    runningRef.current = false;
+    conversationIdRef.current = null;
+    seenEventIds.current.clear();
+
     setStatus("idle");
     setAgents({});
     setAgentOrder([]);
@@ -195,7 +295,7 @@ export function usePipeline() {
 
   return {
     status, agents, agentOrder, checkout, goal, error, run, reset,
-    // Streaming state (for progressive list rendering)
+    conversationId: conversationIdRef.current,
     streamingExpected, streamingItems, streamingTotal, streamingCount,
     trustScores, itemReasons,
   };

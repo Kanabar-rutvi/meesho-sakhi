@@ -255,19 +255,18 @@ export function LanguageSwitcher({ style = {} }) {
       style={{
         padding: '6px 12px',
         borderRadius: 'var(--radius-full)',
-        border: '1px solid rgba(255,255,255,0.3)',
-        background: 'rgba(255,255,255,0.12)',
-        color: 'white',
+        border: '1px solid var(--border-color)',
+        background: 'var(--bg-subtle)',
+        color: 'var(--text-primary)',
         fontSize: '13px',
         fontWeight: 600,
         cursor: 'pointer',
         outline: 'none',
-        backdropFilter: 'blur(4px)',
         ...style
       }}
     >
       {LANG_OPTIONS.map(l => (
-        <option key={l.code} value={l.code} style={{ background: '#1a0533', color: 'white' }}>
+        <option key={l.code} value={l.code} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>
           {l.flag} {l.label}
         </option>
       ))}

@@ -7,11 +7,16 @@ import adminRoutes from './routers/admin.js';
 import learnRoutes from './routers/learn.js';
 import userRoutes from './routers/user.js';
 import meeshoRoutes from './routers/meesho.js';
+import productsRoutes from './routers/products.js';
 import { errorHandler } from './middlewares/errorHandler.js';
+import { apiLimiter, authLimiter } from './middlewares/rateLimiter.js';
+
+import prisma from './utils/db.js';
 
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1); // Enable if behind a reverse proxy (e.g. Vercel/Render)
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "https://meesho-sakhii.vercel.app,http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,http://localhost:8000,http://localhost:5174")
   .split(',')
@@ -39,12 +44,12 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-request-id'],
   exposedHeaders: ['Content-Type'],
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -52,8 +57,12 @@ app.use((req, res, next) => {
   res.setHeader("X-XSS-Protection", "1; mode=block");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   next();
 });
+
+// Apply global API limiter
+app.use(apiLimiter);
 
 app.get('/', (req, res) => {
   res.json({
@@ -64,20 +73,31 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/health', (req, res) => {
-  res.json({
-    status: "ok",
+app.get('/health', async (req, res) => {
+  let dbStatus = "connected";
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+  } catch (err) {
+    dbStatus = "disconnected";
+  }
+
+  const isOk = dbStatus === "connected";
+  res.status(isOk ? 200 : 503).json({
+    status: isOk ? "ok" : "degraded",
+    database: dbStatus,
     version: "2.0.0",
     features: ["8-agent-pipeline", "auth-jwt", "sse-streaming", "conversational-refinement", "node-js-backend", "learning-preference-model"]
   });
 });
 
-app.use('/auth', authRoutes);
+// Apply authLimiter to auth routes
+app.use('/auth', authLimiter, authRoutes);
 app.use('/shop', shopRoutes);
 app.use('/admin', adminRoutes);
 app.use('/learn', learnRoutes);
 app.use('/user', userRoutes);
 app.use('/meesho', meeshoRoutes);
+app.use('/products', productsRoutes);
 
 app.use(errorHandler);
 

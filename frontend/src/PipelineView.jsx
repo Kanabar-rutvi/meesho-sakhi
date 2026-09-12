@@ -27,15 +27,15 @@ function AgentCard({ agentKey, agent }) {
       padding: "10px 14px",
       borderRadius: "var(--radius-md)",
       background: state === "done"
-        ? "rgba(16,185,129,0.06)"
+        ? "var(--bg-subtle)"
         : state === "running"
-        ? "rgba(147,51,234,0.06)"
+        ? "var(--bg-subtle)"
         : "transparent",
       border: `1px solid ${
         state === "done"
-          ? "rgba(16,185,129,0.15)"
+          ? "var(--border-color)"
           : state === "running"
-          ? "rgba(147,51,234,0.15)"
+          ? "var(--border-color)"
           : "transparent"
       }`,
       transition: "all 0.3s ease"
@@ -86,7 +86,7 @@ function AgentCard({ agentKey, agent }) {
         background: state === "done" ? "var(--success)" : state === "running" ? meta.color : "var(--bg-subtle)",
         flexShrink: 0,
         marginTop: "6px",
-        boxShadow: state === "running" ? `0 0 8px ${meta.color}` : "none",
+        boxShadow: "none",
         animation: state === "running" ? "agentPulse 1.5s infinite" : "none"
       }} />
     </div>
@@ -110,7 +110,7 @@ export default function PipelineView({ agents, agentOrder, status }) {
           <div style={{
             width: "30px", height: "30px",
             borderRadius: "var(--radius-sm)",
-            background: "linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))",
+            background: "var(--brand-primary)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: "14px"
           }}>🧠</div>
@@ -129,7 +129,7 @@ export default function PipelineView({ agents, agentOrder, status }) {
             fontSize: "11px",
             color: "var(--brand-primary)",
             fontWeight: 700,
-            background: "rgba(147,51,234,0.08)",
+            background: "var(--bg-subtle)",
             padding: "4px 12px",
             borderRadius: "var(--radius-full)",
             animation: "agentPulse 2s infinite",
@@ -143,7 +143,7 @@ export default function PipelineView({ agents, agentOrder, status }) {
             fontSize: "11px",
             color: "var(--success)",
             fontWeight: 700,
-            background: "rgba(16,185,129,0.08)",
+            background: "var(--bg-subtle)",
             padding: "4px 12px",
             borderRadius: "var(--radius-full)"
           }}>
@@ -166,7 +166,7 @@ export default function PipelineView({ agents, agentOrder, status }) {
             width: `${totalSoFar > 0 ? (doneCount / totalSoFar) * 100 : 0}%`,
             background: status === "done"
               ? "var(--success)"
-              : "linear-gradient(90deg, var(--brand-primary), var(--brand-secondary))",
+              : "var(--brand-primary)",
             borderRadius: "var(--radius-full)",
             transition: "width 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
           }} />

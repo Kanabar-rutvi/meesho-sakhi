@@ -10,15 +10,16 @@ export default function Wishlist() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Instead of navigating away, we handle guest state in the UI
     if (user === null) {
-      navigate('/auth');
+      setLoading(false);
       return;
     }
     
     if (user) {
       const fetchWishlist = async () => {
         try {
-          const token = localStorage.getItem('token');
+          const token = sessionStorage.getItem('token') || localStorage.getItem('token');
           const envUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "";
           const baseUrl = envUrl || (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:8000" : "https://meesho-sakhi.onrender.com");
           const res = await fetch(`${baseUrl}/user/wishlist`, {
@@ -59,25 +60,67 @@ export default function Wishlist() {
 
   if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading wishlist...</div>;
 
+  if (!user) {
+    return (
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '60px 24px', textAlign: 'center', minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '64px', height: '64px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+          <Heart size={32} color="var(--brand-primary)" />
+        </div>
+        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+          Wishlist
+        </div>
+        <h1 style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px', letterSpacing: '-0.02em' }}>
+          Things worth coming back to.
+        </h1>
+        <p style={{ fontSize: '15px', color: 'var(--text-secondary)', marginBottom: '28px', maxWidth: '480px', lineHeight: 1.6 }}>
+          Save products you're considering and find them again when you're ready. Sign in to sync your saved items across devices.
+        </p>
+        <button onClick={() => navigate('/auth')} className="btn btn-primary" style={{ padding: '12px 32px', borderRadius: 'var(--radius-full)', fontSize: '14px' }}>
+          Sign In to Access Saved Items
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
+      
+      {/* ─── Page Header (Intro before function) ─── */}
+      <div className="animate-fade-in" style={{
+        marginBottom: '32px',
+        borderBottom: '1px solid var(--border-color)',
+        paddingBottom: '24px'
+      }}>
+        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+          Wishlist
+        </div>
+        <h1 style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+          Things worth coming back to.
+        </h1>
+        <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '600px' }}>
+          Save products you're considering and find them again when you're ready.
+        </p>
+      </div>
+
       <div className="animate-fade-in">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h1 style={{ fontSize: '28px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Heart size={28} color="var(--brand-secondary)" fill="var(--brand-secondary)" /> Wishlist
-            </h1>
-            <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
               {items.length} items · ₹{totalValue.toLocaleString()} total
             </p>
           </div>
         </div>
 
         {items.length === 0 ? (
-          <div className="card" style={{ textAlign: 'center', padding: '60px 40px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>💜</div>
-            <h2 style={{ fontSize: '20px', marginBottom: '8px' }}>Your wishlist is empty</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>Items you save from Sakhi&apos;s recommendations will appear here.</p>
+          <div className="card" style={{ textAlign: 'center', padding: '60px 40px', background: 'var(--bg-main)', border: '1px solid var(--border-color)', boxShadow: 'none' }}>
+            <div style={{ width: '64px', height: '64px', background: 'var(--bg-card)', borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border-color)' }}>
+              <Heart size={28} color="var(--text-tertiary)" />
+            </div>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>Your wishlist is waiting for its first find.</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Items you save from your personalized recommendations will appear here.</p>
+            <button onClick={() => navigate('/app/ask')} className="btn btn-primary" style={{ padding: '10px 24px', borderRadius: 'var(--radius-md)' }}>
+              Explore Products
+            </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -89,7 +132,7 @@ export default function Wishlist() {
                 <div style={{
                   width: '56px', height: '56px',
                   borderRadius: 'var(--radius-md)',
-                  background: 'linear-gradient(135deg, var(--purple-100), rgba(147,51,234,0.15))',
+                  background: 'var(--bg-subtle)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '28px', flexShrink: 0
                 }}>
@@ -97,13 +140,13 @@ export default function Wishlist() {
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '15px', marginBottom: '4px' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '15px', marginBottom: '4px' }}>
                     {item.name}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <span style={{
-                      fontSize: '11px', fontWeight: 600, color: 'var(--brand-primary)',
-                      background: 'rgba(147,51,234,0.06)', padding: '3px 10px',
+                      fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)',
+                      background: 'var(--bg-subtle)', padding: '3px 10px',
                       borderRadius: 'var(--radius-full)', textTransform: 'capitalize'
                     }}>{item.category}</span>
                     <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
@@ -113,7 +156,7 @@ export default function Wishlist() {
                 </div>
 
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '18px', color: 'var(--brand-primary)' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '18px', color: 'var(--text-primary)' }}>
                     ₹{item.price.toLocaleString()}
                   </div>
                 </div>

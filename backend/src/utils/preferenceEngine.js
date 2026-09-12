@@ -1,4 +1,5 @@
 import prisma from './db.js';
+import { getProductById } from './catalog.js';
 
 const FEEDBACK_SIGNALS = {
   order:    { weight: 3.0, polarity:  1, desc: "Highest trust — user actually purchased" },
@@ -66,7 +67,19 @@ export class PreferenceEngine {
       this._loaded = true;
       return;
     }
-    const row = await prisma.learnedPreferences.findUnique({ where: { user_id: this.userId } });
+    const row = await prisma.learnedPreferences.findUnique({
+      where: { user_id: this.userId },
+      select: {
+        category_scores: true,
+        brand_scores: true,
+        tag_scores: true,
+        price_sensitivity: true,
+        quality_bias: true,
+        min_rating_pref: true,
+        eco_soc_warm: true,
+        total_signals: true,
+      }
+    });
     if (row) {
       this.profile = loadProfileRow(row);
     } else {
@@ -154,8 +167,8 @@ export class PreferenceEngine {
 
   async recordFeedback({ product, feedback_type, rating, comment, product_id, category, tags, session_id, goal_id, weight = 1.0, catalog }) {
     let productObj = product;
-    if (!productObj && product_id && catalog) {
-      productObj = catalog.find(p => p.id === product_id) || null;
+    if (!productObj && product_id) {
+      productObj = getProductById(product_id);
     }
     if (!productObj && category && tags) {
       productObj = { category, tags: typeof tags === "string" ? safeParse(tags, []) : (tags || []) };
@@ -199,9 +212,9 @@ export class PreferenceEngine {
 
   async recordInteraction({ action_type, query_text, category, product_from, product_to, session_id, metadata, catalog }) {
     // Learn from refinements: swaps, category add/remove, budget changes
-    if (action_type === "swap" && product_from && product_to && catalog) {
-      const fromP = catalog.find(p => p.id === product_from);
-      const toP   = catalog.find(p => p.id === product_to);
+    if (action_type === "swap" && product_from && product_to) {
+      const fromP = getProductById(product_from);
+      const toP   = getProductById(product_to);
       if (fromP) this._learnProduct(fromP, "replace", -1);
       if (toP)   this._learnProduct(toP,   "replace",  1);
     }

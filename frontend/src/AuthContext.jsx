@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       if (!token) {
         setLoading(false);
         return;
@@ -27,6 +27,7 @@ export function AuthProvider({ children }) {
           const userData = await res.json();
           setUser(userData);
         } else {
+          sessionStorage.removeItem('token');
           localStorage.removeItem('token');
         }
       } catch (error) {
@@ -40,11 +41,13 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (token, userData) => {
-    localStorage.setItem('token', token);
+    sessionStorage.setItem('token', token);
+    localStorage.removeItem('token'); // Clean up any old persistent token
     setUser(userData);
   };
 
   const logout = () => {
+    sessionStorage.removeItem('token');
     localStorage.removeItem('token');
     setUser(null);
   };

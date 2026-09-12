@@ -4,37 +4,71 @@ import { Send, Sparkles, Bot, User } from 'lucide-react';
 /**
  * ChatRefinement: A conversational refinement UI that lets users
  * ask follow-up questions after the AI pipeline finishes.
- * e.g. "Replace the pillow with something cheaper", "Add a table lamp under ₹500"
  */
-export default function ChatRefinement({ onRefine, isProcessing = false }) {
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      text: "Your Smart Cart is ready! 🎉 Want to make changes? Just tell me — I can swap items, adjust budgets, add extras, or remove things you don't need."
-    }
-  ]);
+export default function ChatRefinement({ onRefine, isProcessing = false, checkout, isConversational }) {
+  const initialText = !isConversational
+    ? "Your Smart Cart is ready! 🎉 Want to make changes? Just tell me — I can swap items, adjust budgets, add extras, or remove things you don't need."
+    : (checkout?.summary || "I'm ready to help you shop! Tell me what you need.");
+
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Fetch history if continuing a plan
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (checkout?.raw_plan_id) {
+        try {
+          const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+          const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:8000" : "https://meesho-sakhi.onrender.com");
+          const res = await fetch(`${baseUrl}/user/plan/${checkout.raw_plan_id}/conversation`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.length > 0) {
+              setMessages(data);
+              return;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch chat history:", e);
+        }
+      }
+      setMessages([{ role: 'assistant', text: initialText }]);
+    };
+    fetchHistory();
+  }, [checkout?.raw_plan_id, initialText]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = () => {
-    const trimmed = input.trim();
+  // Append real assistant response when checkout or summary updates from SSE
+  useEffect(() => {
+    if (checkout?.summary) {
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last && last.role === 'assistant' && last.text === checkout.summary) return prev;
+        if (last && last.role === 'user') {
+          return [...prev, { role: 'assistant', text: checkout.summary }];
+        }
+        return prev;
+      });
+    }
+  }, [checkout]);
+
+  const handleSend = (overrideText) => {
+    const textToSend = typeof overrideText === 'string' ? overrideText : input;
+    const trimmed = textToSend.trim();
     if (!trimmed || isProcessing) return;
 
     const userMsg = { role: 'user', text: trimmed };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
 
-    // Simulate an AI response (Phase 9 stub — replace with actual backend call)
-    setTimeout(() => {
-      const response = generateStubResponse(trimmed);
-      setMessages(prev => [...prev, { role: 'assistant', text: response }]);
-      if (onRefine) onRefine(trimmed);
-    }, 800);
+    if (onRefine) onRefine(trimmed);
   };
 
   const suggestions = [
@@ -45,72 +79,93 @@ export default function ChatRefinement({ onRefine, isProcessing = false }) {
   ];
 
   return (
-    <div style={{
-      background: 'var(--bg-card)',
-      borderRadius: 'var(--radius-xl)',
-      border: '1px solid rgba(0,0,0,0.06)',
+    <div className="card animate-fade-in" style={{
+      marginTop: '24px',
+      padding: '0',
       overflow: 'hidden',
-      boxShadow: 'var(--shadow-md)',
-      marginTop: '24px'
+      display: 'flex',
+      flexDirection: 'column',
+      border: '1px solid var(--border-color)'
     }}>
       {/* Header */}
       <div style={{
         padding: '16px 24px',
-        borderBottom: '1px solid rgba(0,0,0,0.04)',
+        borderBottom: '1px solid var(--border-color)',
         display: 'flex', alignItems: 'center', gap: '12px',
-        background: 'linear-gradient(135deg, rgba(147,51,234,0.04) 0%, rgba(236,72,153,0.04) 100%)'
+        background: 'var(--bg-subtle)'
       }}>
         <div style={{
           width: '32px', height: '32px', borderRadius: 'var(--radius-full)',
-          background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))',
+          background: 'var(--brand-primary)',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <Sparkles size={16} color="white" />
         </div>
         <div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)' }}>
-            Refine with Sakhi
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '15px', color: 'var(--text-primary)' }}>
+            {isConversational ? "Chat with Sakhi" : "Refine with Sakhi"}
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
-            Ask me to change, swap, or add items
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+            {isConversational ? "I can answer questions or help you find new items" : "Ask me to change, swap, or add items"}
           </div>
         </div>
       </div>
 
       {/* Messages */}
       <div style={{
-        padding: '16px 24px',
-        maxHeight: '320px',
+        padding: '24px',
+        maxHeight: '400px',
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px'
+        gap: '20px'
       }}>
         {messages.map((msg, idx) => (
-          <div key={idx} className="animate-fade-in" style={{
+          <div key={idx} className="animate-slide-up" style={{
             display: 'flex',
-            gap: '10px',
+            gap: '12px',
             flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
-            alignItems: 'flex-start'
+            alignItems: 'flex-end'
           }}>
             <div style={{
-              width: '28px', height: '28px', borderRadius: 'var(--radius-full)',
-              background: msg.role === 'user' ? 'var(--brand-secondary)' : 'var(--brand-primary)',
+              width: '32px', height: '32px', borderRadius: 'var(--radius-full)',
+              background: msg.role === 'user' ? 'var(--text-secondary)' : 'var(--brand-primary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0
             }}>
-              {msg.role === 'user' ? <User size={14} color="white" /> : <Bot size={14} color="white" />}
+              {msg.role === 'user' ? <User size={16} color="white" /> : <Bot size={16} color="white" />}
             </div>
             <div style={{
               background: msg.role === 'user' ? 'var(--brand-primary)' : 'var(--bg-subtle)',
               color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
-              padding: '10px 16px',
+              padding: '12px 16px',
               borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
               fontSize: '14px',
               lineHeight: 1.5,
-              maxWidth: '80%'
+              maxWidth: '75%',
+              border: msg.role === 'user' ? 'none' : '1px solid var(--border-color)'
             }}>
-              {msg.text}
+              <div>{msg.text}</div>
+              {msg.products && msg.products.length > 0 && (
+                <div style={{ marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Items Recommended ({msg.products.length}):
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {msg.products.map((p, pIdx) => (
+                      <div key={pIdx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', gap: '8px' }}>
+                        <span style={{ color: msg.role === 'user' ? 'white' : 'var(--text-primary)' }}>• {p.name}</span>
+                        <span style={{ fontWeight: 600, color: msg.role === 'user' ? 'white' : 'var(--text-primary)' }}>₹{p.price}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {msg.total && (
+                    <div style={{ marginTop: '8px', fontSize: '12px', fontWeight: 700, textAlign: 'right', color: msg.role === 'user' ? 'white' : 'var(--text-primary)' }}>
+                      Total: ₹{msg.total.toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -119,21 +174,11 @@ export default function ChatRefinement({ onRefine, isProcessing = false }) {
 
       {/* Suggestions */}
       {messages.length <= 2 && (
-        <div style={{ padding: '0 24px 12px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ padding: '0 24px 16px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           {suggestions.map((s, i) => (
-            <button key={i} onClick={() => setInput(s)} style={{
-              fontSize: '12px', color: 'var(--brand-primary)',
-              background: 'rgba(147,51,234,0.06)',
-              border: '1px solid rgba(147,51,234,0.15)',
-              borderRadius: 'var(--radius-full)',
-              padding: '6px 14px',
-              cursor: 'pointer',
-              transition: 'all var(--transition-fast)',
-              fontWeight: 500
-            }}
-            onMouseOver={e => { e.target.style.background = 'rgba(147,51,234,0.12)'; }}
-            onMouseOut={e => { e.target.style.background = 'rgba(147,51,234,0.06)'; }}
-            >
+            <button key={i} onClick={() => handleSend(s)} className="btn btn-secondary" style={{
+              fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-full)'
+            }}>
               {s}
             </button>
           ))}
@@ -142,9 +187,10 @@ export default function ChatRefinement({ onRefine, isProcessing = false }) {
 
       {/* Input */}
       <div style={{
-        padding: '12px 24px 16px',
-        borderTop: '1px solid rgba(0,0,0,0.04)',
-        display: 'flex', gap: '10px', alignItems: 'center'
+        padding: '16px 24px',
+        borderTop: '1px solid var(--border-color)',
+        display: 'flex', gap: '12px', alignItems: 'center',
+        background: 'var(--bg-main)'
       }}>
         <input
           ref={inputRef}
@@ -152,28 +198,24 @@ export default function ChatRefinement({ onRefine, isProcessing = false }) {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSend()}
-          placeholder="e.g. Swap the mattress with a foldable one..."
+          placeholder="e.g. Make it cheaper, remove shoes, swap mattress..."
           disabled={isProcessing}
           style={{
             flex: 1, padding: '12px 16px',
             borderRadius: 'var(--radius-full)',
-            border: '2px solid rgba(0,0,0,0.06)',
+            border: '1px solid var(--border-color)',
             fontSize: '14px',
-            fontFamily: 'var(--font-body)',
             outline: 'none',
-            transition: 'border-color var(--transition-fast)',
-            background: 'var(--bg-subtle)'
+            background: 'var(--bg-card)'
           }}
-          onFocus={e => e.target.style.borderColor = 'var(--brand-primary)'}
-          onBlur={e => e.target.style.borderColor = 'rgba(0,0,0,0.06)'}
         />
         <button
-          onClick={handleSend}
+          onClick={() => handleSend()}
           disabled={!input.trim() || isProcessing}
           style={{
             width: '44px', height: '44px',
             borderRadius: 'var(--radius-full)',
-            background: input.trim() ? 'linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))' : 'var(--bg-subtle)',
+            background: input.trim() ? 'var(--brand-primary)' : 'var(--bg-subtle)',
             border: 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: input.trim() ? 'pointer' : 'not-allowed',
@@ -186,14 +228,4 @@ export default function ChatRefinement({ onRefine, isProcessing = false }) {
       </div>
     </div>
   );
-}
-
-function generateStubResponse(query) {
-  const q = query.toLowerCase();
-  if (q.includes('remove')) return "Done! I've removed that item from your cart. Your total has been updated. 🗑️";
-  if (q.includes('replace') || q.includes('swap')) return "I found a great alternative! I've swapped it in your cart. Check the updated items above. 🔄";
-  if (q.includes('add')) return "Added to your cart! I picked the best-rated option within your remaining budget. ✨";
-  if (q.includes('cheaper') || q.includes('budget')) return "I found a more budget-friendly option with similar ratings. Swapped it in! 💰";
-  if (q.includes('alternative')) return "Here are some alternatives I found. I've updated the cart with the top pick. Want me to show you more options? 🔍";
-  return "I understand! Let me adjust your cart accordingly. The changes are reflected above. Let me know if you want anything else! 🛒";
 }
