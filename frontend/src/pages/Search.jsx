@@ -42,6 +42,13 @@ export default function Search() {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
+  const activeFilterCount = (selectedCategory !== 'All Categories' ? 1 : 0) +
+    (selectedSubcategory ? 1 : 0) +
+    (selectedPriceRange > 0 ? 1 : 0) +
+    (minRating > 0 ? 1 : 0) +
+    (selectedBrand !== 'All' ? 1 : 0) +
+    (inStockOnly ? 1 : 0);
+
   // Sync state if URL params change
   useEffect(() => {
     if (categoryParam) {
@@ -231,22 +238,54 @@ export default function Search() {
         </div>
 
         {/* 3. Main Marketplace Layout: Sidebar Filters + Products Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px', alignItems: 'start' }}>
+        <div className="search-layout-grid">
 
           {/* Left Filter Sidebar */}
-          <aside style={{ background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color, #e2e8f0)', borderRadius: '12px', padding: '20px', position: 'sticky', top: '24px' }}>
+          <aside
+            className={`search-filter-sidebar ${mobileFilterOpen ? 'is-open' : ''}`}
+            style={{
+              background: 'var(--bg-card, #ffffff)',
+              border: '1px solid var(--border-color, #e2e8f0)',
+              borderRadius: '12px',
+              padding: 'clamp(14px, 3vw, 20px)',
+              position: 'sticky',
+              top: '24px'
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color, #f1f5f9)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '15px', color: 'var(--text-primary, #0f172a)' }}>
                 <SlidersHorizontal size={16} color="var(--brand-primary, #9c27b0)" />
                 Filters
+                {activeFilterCount > 0 && (
+                  <span style={{
+                    fontSize: '11px', background: 'var(--brand-primary)', color: 'white',
+                    padding: '2px 7px', borderRadius: 'var(--radius-full)', fontWeight: 700
+                  }}>
+                    {activeFilterCount}
+                  </span>
+                )}
               </div>
-              <button
-                onClick={handleResetFilters}
-                style={{ background: 'none', border: 'none', color: 'var(--text-tertiary, #94a3b8)', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}
-                title="Reset all filters"
-              >
-                <RotateCcw size={12} /> Reset
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  onClick={handleResetFilters}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-tertiary, #94a3b8)', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}
+                  title="Reset all filters"
+                >
+                  <RotateCcw size={12} /> Reset
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(false)}
+                  className="show-on-mobile"
+                  style={{
+                    background: 'var(--bg-subtle)', border: '1px solid var(--border-color)',
+                    borderRadius: '6px', fontSize: '11px', fontWeight: 600,
+                    padding: '3px 8px', cursor: 'pointer', color: 'var(--text-primary)'
+                  }}
+                >
+                  ✕ Close
+                </button>
+              </div>
             </div>
 
             {/* Category Filter */}
@@ -425,36 +464,70 @@ export default function Search() {
           </aside>
 
           {/* Right Product Grid Area */}
-          <main>
-            {/* Top Toolbar: Sorting and count */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color, #e2e8f0)', borderRadius: '10px', padding: '10px 16px' }}>
+          <main style={{ minWidth: 0 }}>
+            {/* Top Toolbar: Sorting, Mobile Filter Button, and count */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '12px',
+              marginBottom: '20px',
+              background: 'var(--bg-card, #ffffff)',
+              border: '1px solid var(--border-color, #e2e8f0)',
+              borderRadius: '10px',
+              padding: '10px 16px'
+            }}>
               <div style={{ fontSize: '13px', color: 'var(--text-secondary, #64748b)' }}>
                 Showing <strong>{products.length}</strong> items
               </div>
 
-              {/* Sort By Dropdown */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', color: 'var(--text-secondary, #64748b)', fontWeight: 500 }}>Sort by:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+              {/* Toolbar Controls: Filter toggle on mobile + Sort dropdown */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+                  className="show-on-mobile-flex"
                   style={{
-                    padding: '6px 10px',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
                     borderRadius: '6px',
-                    border: '1px solid var(--border-color, #cbd5e1)',
-                    background: 'var(--bg-card, #ffffff)',
-                    fontSize: '13px',
+                    border: '1px solid var(--border-color)',
+                    background: mobileFilterOpen ? 'var(--brand-primary-light)' : 'var(--bg-subtle)',
+                    color: mobileFilterOpen ? 'var(--brand-primary)' : 'var(--text-primary)',
+                    fontSize: '12px',
                     fontWeight: 600,
-                    color: 'var(--text-primary, #0f172a)',
                     cursor: 'pointer'
                   }}
                 >
-                  <option value="relevance">Relevance</option>
-                  <option value="popularity">Popularity</option>
-                  <option value="price_low">Price: Low to High</option>
-                  <option value="price_high">Price: High to Low</option>
-                  <option value="rating">Customer Rating</option>
-                </select>
+                  <SlidersHorizontal size={13} />
+                  <span>Filters {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}</span>
+                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '13px', color: 'var(--text-secondary, #64748b)', fontWeight: 500 }}>Sort:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-color, #cbd5e1)',
+                      background: 'var(--bg-card, #ffffff)',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: 'var(--text-primary, #0f172a)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="relevance">Relevance</option>
+                    <option value="popularity">Popularity</option>
+                    <option value="price_low">Price: Low to High</option>
+                    <option value="price_high">Price: High to Low</option>
+                    <option value="rating">Rating</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -492,13 +565,7 @@ export default function Search() {
                 </button>
               </div>
             ) : (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-                  gap: '20px'
-                }}
-              >
+              <div className="responsive-product-grid">
                 {products.map(product => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -507,6 +574,35 @@ export default function Search() {
           </main>
         </div>
       </div>
+
+      <style>{`
+        .search-layout-grid {
+          display: grid;
+          grid-template-columns: 260px 1fr;
+          gap: 24px;
+          align-items: start;
+        }
+        @media (max-width: 860px) {
+          .search-layout-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+          .search-filter-sidebar {
+            display: none;
+          }
+          .search-filter-sidebar.is-open {
+            display: block !important;
+            position: static !important;
+            margin-bottom: 16px;
+            animation: fadeIn 0.25s ease;
+          }
+        }
+        @media (min-width: 861px) {
+          .search-filter-sidebar {
+            display: block !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

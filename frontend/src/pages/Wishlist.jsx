@@ -83,7 +83,7 @@ export default function Wishlist() {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: 'clamp(16px, 4vw, 40px) clamp(14px, 3.5vw, 24px)' }}>
       
       {/* ─── Page Header (Intro before function) ─── */}
       <div className="animate-fade-in" style={{
@@ -94,7 +94,7 @@ export default function Wishlist() {
         <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
           Wishlist
         </div>
-        <h1 style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
           Things worth coming back to.
         </h1>
         <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '600px' }}>
@@ -126,8 +126,8 @@ export default function Wishlist() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {items.map((item, idx) => (
               <div key={item.id} className="card animate-fade-in" style={{
-                display: 'flex', alignItems: 'center', gap: '16px',
-                animationDelay: `${idx * 50}ms`, padding: '16px'
+                display: 'flex', alignItems: 'center', gap: 'clamp(10px, 2.5vw, 16px)', flexWrap: 'wrap',
+                animationDelay: `${idx * 50}ms`, padding: 'clamp(12px, 3vw, 16px)'
               }}>
                 <div style={{
                   width: '56px', height: '56px',
@@ -139,7 +139,7 @@ export default function Wishlist() {
                   {item.image}
                 </div>
 
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: '1 1 180px', minWidth: 0 }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '15px', marginBottom: '4px' }}>
                     {item.name}
                   </div>
@@ -155,23 +155,23 @@ export default function Wishlist() {
                   </div>
                 </div>
 
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: 'auto', flexShrink: 0 }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '18px', color: 'var(--text-primary)' }}>
                     ₹{item.price.toLocaleString()}
                   </div>
-                </div>
 
-                <button onClick={() => removeItem(item.id)} style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--text-tertiary)', padding: '8px',
-                  borderRadius: 'var(--radius-full)',
-                  transition: 'all var(--transition-fast)'
-                }}
-                onMouseOver={e => { e.currentTarget.style.color = 'var(--error)'; e.currentTarget.style.background = 'rgba(239,68,68,0.06)'; }}
-                onMouseOut={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'none'; }}
-                >
-                  <Trash2 size={18} />
-                </button>
+                  <button onClick={() => removeItem(item.id)} style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--text-tertiary)', padding: '8px',
+                    borderRadius: 'var(--radius-full)',
+                    transition: 'all var(--transition-fast)'
+                  }}
+                  onMouseOver={e => { e.currentTarget.style.color = 'var(--error)'; e.currentTarget.style.background = 'rgba(239,68,68,0.06)'; }}
+                  onMouseOut={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'none'; }}
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

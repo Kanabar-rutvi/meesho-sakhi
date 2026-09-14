@@ -478,24 +478,24 @@ export default function Dashboard() {
       {/* ─── Overview Stats ─── */}
       <div style={{ marginBottom: '40px' }}>
         <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>Dashboard Overview</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }} className="animate-fade-in">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: 'clamp(10px, 2.5vw, 20px)' }} className="animate-fade-in">
           {stats.map((stat, i) => (
             <div key={i} style={{ 
               background: 'var(--bg-card)', 
               border: '1px solid var(--border-color)', 
               borderRadius: 'var(--radius-md)', 
-              padding: '20px',
+              padding: 'clamp(14px, 3vw, 20px)',
               display: 'flex',
               flexDirection: 'column',
               boxShadow: 'var(--shadow-sm)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                <div style={{ width: '40px', height: '40px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: stat.color }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                <div style={{ width: '36px', height: '36px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: stat.color, flexShrink: 0 }}>
                   {stat.icon}
                 </div>
-                <div style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500 }}>{stat.label}</div>
+                <div style={{ fontSize: 'clamp(12px, 2.5vw, 14px)', color: 'var(--text-secondary)', fontWeight: 500 }}>{stat.label}</div>
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+              <div style={{ fontSize: 'clamp(20px, 5vw, 28px)', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
                 {stat.value}
               </div>
             </div>

@@ -189,8 +189,8 @@ export default function ProductDetail() {
         </button>
 
         {/* Main Product Container: Gallery + Details */}
-        <div style={{ background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color, #e2e8f0)', borderRadius: '16px', padding: '32px', marginBottom: '36px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 460px) 1fr', gap: '48px', alignItems: 'start' }}>
+        <div style={{ background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color, #e2e8f0)', borderRadius: '16px', padding: 'clamp(14px, 3.5vw, 32px)', marginBottom: '36px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div className="product-detail-grid">
 
             {/* Left: Product Image Gallery */}
             <div>
@@ -341,8 +341,8 @@ export default function ProductDetail() {
               )}
 
               {/* Quantity and Actions */}
-              <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border-color, #cbd5e1)', borderRadius: '8px', overflow: 'hidden', background: '#ffffff' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border-color, #cbd5e1)', borderRadius: '8px', overflow: 'hidden', background: '#ffffff', flexShrink: 0 }}>
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     style={{ padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700 }}
@@ -362,8 +362,9 @@ export default function ProductDetail() {
                 <button
                   onClick={() => handleAction('cart')}
                   style={{
-                    flex: 1,
-                    padding: '14px 24px',
+                    flex: '1 1 180px',
+                    minWidth: '150px',
+                    padding: '14px 20px',
                     borderRadius: '8px',
                     background: 'var(--brand-primary, #9c27b0)',
                     color: '#ffffff',
@@ -394,7 +395,8 @@ export default function ProductDetail() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    flexShrink: 0
                   }}
                   title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
                 >
@@ -411,7 +413,7 @@ export default function ProductDetail() {
               )}
 
               {/* Trust Badges */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', borderTop: '1px solid var(--border-color, #f1f5f9)', paddingTop: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px', borderTop: '1px solid var(--border-color, #f1f5f9)', paddingTop: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary, #475569)' }}>
                   <ShieldCheck size={20} color="#059669" />
                   <div>
@@ -455,12 +457,12 @@ export default function ProductDetail() {
         </div>
 
         {/* Specifications & Attributes Table */}
-        <div style={{ background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color, #e2e8f0)', borderRadius: '16px', padding: '28px', marginBottom: '36px' }}>
+        <div style={{ background: 'var(--bg-card, #ffffff)', border: '1px solid var(--border-color, #e2e8f0)', borderRadius: '16px', padding: 'clamp(16px, 3.5vw, 28px)', marginBottom: '36px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary, #0f172a)', marginBottom: '18px' }}>
             Product Specifications & Details
           </h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '14px', marginBottom: '24px' }}>
             <div style={{ display: 'flex', padding: '10px 14px', background: 'var(--bg-subtle, #f8fafc)', borderRadius: '8px' }}>
               <span style={{ width: '130px', color: 'var(--text-tertiary, #64748b)', fontSize: '13px' }}>Category</span>
               <span style={{ fontWeight: 600, color: 'var(--text-primary, #0f172a)', fontSize: '13px' }}>{product.category}</span>
@@ -512,7 +514,7 @@ export default function ProductDetail() {
         {/* Similar Marketplace Products */}
         {similarProducts.length > 0 && (
           <div style={{ marginBottom: '40px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
               <div>
                 <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary, #0f172a)', margin: '0 0 4px 0' }}>
                   Similar Products You May Like
@@ -529,13 +531,7 @@ export default function ProductDetail() {
               </Link>
             </div>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
-                gap: '20px'
-              }}
-            >
+            <div className="responsive-product-grid">
               {similarProducts.map(p => (
                 <ProductCard key={p.id} product={p} />
               ))}
@@ -544,6 +540,21 @@ export default function ProductDetail() {
         )}
 
       </div>
+
+      <style>{`
+        .product-detail-grid {
+          display: grid;
+          grid-template-columns: minmax(min(100%, 340px), 480px) 1fr;
+          gap: clamp(20px, 4vw, 48px);
+          align-items: start;
+        }
+        @media (max-width: 860px) {
+          .product-detail-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

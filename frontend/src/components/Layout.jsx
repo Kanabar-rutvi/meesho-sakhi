@@ -15,6 +15,8 @@ export default function Layout() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
@@ -24,21 +26,22 @@ export default function Layout() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setMobileSearchOpen(false);
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-main)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-main)', overflowX: 'hidden' }}>
       {/* ─── Top Editorial Commerce Navbar ─── */}
       <header style={{
         background: 'var(--bg-card)',
-        padding: '0 clamp(16px, 4vw, 36px)',
-        height: '64px',
+        padding: '0 clamp(8px, 2.5vw, 32px)',
+        height: '56px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '20px',
+        gap: 'clamp(6px, 1.5vw, 16px)',
         borderBottom: '1px solid var(--border-color)',
         position: 'sticky',
         top: 0,
@@ -46,10 +49,10 @@ export default function Layout() {
       }}>
         {/* LEFT: Logo / Sakhi */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
-          <SakhiLogo size={38} variant="full" />
+          <SakhiLogo size={isMobile ? 28 : 34} variant="full" />
         </Link>
 
-        {/* CENTER: Search products, brands, categories + AI Assistant */}
+        {/* CENTER: Search products, brands, categories + AI Assistant (Desktop & Tablet) */}
         <div style={{ flex: 1, display: isMobile ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', maxWidth: '580px', margin: '0 auto' }}>
           <form onSubmit={handleSearchSubmit} style={{ position: 'relative', width: '100%' }}>
             <Search size={15} color="var(--text-tertiary)" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
@@ -77,20 +80,40 @@ export default function Layout() {
           </Link>
         </div>
 
-        {/* RIGHT: Wishlist, Cart, Theme, Profile / Sign In */}
-        <nav style={{ display: 'flex', gap: '12px', alignItems: 'center', flexShrink: 0 }}>
-          {/* Wishlist Icon */}
+        {/* RIGHT: Mobile Search Toggle, Wishlist, Cart, Theme, Profile / Sign In */}
+        <nav style={{ display: 'flex', gap: 'clamp(4px, 1.2vw, 10px)', alignItems: 'center', flexShrink: 0 }}>
+          {/* Mobile Search Toggle Button */}
+          {isMobile && (
+            <button
+              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+              title="Search catalog"
+              aria-label="Toggle search"
+              style={{
+                background: mobileSearchOpen ? 'var(--brand-primary-light)' : 'var(--bg-subtle)',
+                border: '1px solid var(--border-color)',
+                color: mobileSearchOpen ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '32px', height: '32px', borderRadius: 'var(--radius-full)'
+              }}
+            >
+              <Search size={14} />
+            </button>
+          )}
+
+          {/* Wishlist Icon — hide on mobile since bottom nav already has dedicated 'Saved' tab */}
           <Link
             to="/app/wishlist"
+            className="hide-on-mobile"
             title="Wishlist"
             style={{
               color: 'var(--text-secondary)', textDecoration: 'none', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px',
+              alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px',
               borderRadius: 'var(--radius-full)', background: 'var(--bg-subtle)',
               border: '1px solid var(--border-color)', transition: 'background var(--transition-fast)'
             }}
           >
-            <Heart size={16} />
+            <Heart size={15} />
           </Link>
 
           {/* Plans / Cart Icon */}
@@ -99,12 +122,12 @@ export default function Layout() {
             title="Plans & Cart"
             style={{
               color: 'var(--text-secondary)', textDecoration: 'none', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px',
+              alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px',
               borderRadius: 'var(--radius-full)', background: 'var(--bg-subtle)',
               border: '1px solid var(--border-color)', transition: 'background var(--transition-fast)'
             }}
           >
-            <ShoppingCart size={16} />
+            <ShoppingCart size={14} />
           </Link>
 
           {/* Theme Toggle */}
@@ -117,13 +140,13 @@ export default function Layout() {
               color: 'var(--text-secondary)',
               cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: '36px', height: '36px', borderRadius: 'var(--radius-full)'
+              width: '32px', height: '32px', borderRadius: 'var(--radius-full)'
             }}
           >
-            {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
+            {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
           </button>
           
-          <div style={{ width: '1px', height: '22px', background: 'var(--border-color)', margin: '0 4px' }} />
+          <div className="hide-on-mobile" style={{ width: '1px', height: '20px', background: 'var(--border-color)', margin: '0 2px' }} />
 
           {/* User Account / Sign In */}
           {user ? (
@@ -135,8 +158,8 @@ export default function Layout() {
                 }}
               >
                 <div style={{
-                  width: '34px', height: '34px', borderRadius: 'var(--radius-full)', background: 'var(--brand-primary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600, fontSize: '13px'
+                  width: '30px', height: '30px', borderRadius: 'var(--radius-full)', background: 'var(--brand-primary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600, fontSize: '12px'
                 }}>
                   {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
@@ -173,7 +196,7 @@ export default function Layout() {
             </div>
           ) : (
             <Link to="/auth" className="btn btn-primary" style={{
-              fontSize: '13px', padding: '8px 18px', borderRadius: 'var(--radius-full)', fontWeight: 600
+              fontSize: '11px', padding: '5px 12px', borderRadius: 'var(--radius-full)', fontWeight: 600, whiteSpace: 'nowrap'
             }}>
               Sign In
             </Link>
@@ -181,44 +204,89 @@ export default function Layout() {
         </nav>
       </header>
 
+      {/* ─── Mobile Search Dropdown Bar ─── */}
+      {isMobile && mobileSearchOpen && (
+        <div style={{
+          background: 'var(--bg-card)',
+          padding: '10px 16px',
+          borderBottom: '1px solid var(--border-color)',
+          display: 'flex',
+          gap: '8px',
+          alignItems: 'center',
+          animation: 'fadeIn 0.2s ease',
+          zIndex: 49,
+          position: 'sticky',
+          top: '60px'
+        }}>
+          <form onSubmit={handleSearchSubmit} style={{ position: 'relative', flex: 1 }}>
+            <Search size={15} color="var(--text-tertiary)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+            <input 
+              autoFocus
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search products, brands, categories..." 
+              style={{
+                width: '100%', padding: '8px 12px 8px 36px', borderRadius: 'var(--radius-full)',
+                border: '1px solid var(--border-color)', background: 'var(--bg-main)', fontSize: '13px',
+                color: 'var(--text-primary)', outline: 'none'
+              }} 
+            />
+          </form>
+          <button
+            type="button"
+            onClick={() => setMobileSearchOpen(false)}
+            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', padding: '4px 6px' }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
       {/* ─── Main Content Outlet ─── */}
-      <main style={{ flex: 1, paddingBottom: isMobile ? '76px' : '0' }}>
+      <main style={{ flex: 1, paddingBottom: isMobile ? 'calc(68px + env(safe-area-inset-bottom, 0px))' : '0' }}>
         <Outlet />
       </main>
 
       {/* ─── Mobile Bottom Navigation Bar ─── */}
       {isMobile && (
-        <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
-          background: 'var(--bg-card)', borderTop: '1px solid var(--border-color)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-around', zIndex: 40
-        }}>
-          <Link to="/" style={{ color: location.pathname === '/' ? 'var(--brand-primary)' : 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', textDecoration: 'none', fontSize: '11px' }}>
+        <nav 
+          aria-label="Mobile Navigation"
+          style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, 
+            height: 'calc(58px + env(safe-area-inset-bottom, 0px))',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            background: 'var(--bg-card)', borderTop: '1px solid var(--border-color)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-around', zIndex: 40,
+            backdropFilter: 'blur(8px)'
+          }}
+        >
+          <Link to="/" style={{ color: location.pathname === '/' ? 'var(--brand-primary)' : 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', textDecoration: 'none', fontSize: '11px', fontWeight: location.pathname === '/' ? 600 : 400 }}>
             <Home size={18} />
             <span>Home</span>
           </Link>
-          <Link to="/search" style={{ color: location.pathname.startsWith('/search') ? 'var(--brand-primary)' : 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', textDecoration: 'none', fontSize: '11px' }}>
+          <Link to="/search" style={{ color: location.pathname.startsWith('/search') ? 'var(--brand-primary)' : 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', textDecoration: 'none', fontSize: '11px', fontWeight: location.pathname.startsWith('/search') ? 600 : 400 }}>
             <Search size={18} />
             <span>Explore</span>
           </Link>
-          <Link to="/app/ask" style={{ color: location.pathname.startsWith('/app/ask') ? 'var(--brand-primary)' : 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', textDecoration: 'none', fontSize: '11px' }}>
+          <Link to="/app/ask" style={{ color: location.pathname.startsWith('/app/ask') ? 'var(--brand-primary)' : 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', textDecoration: 'none', fontSize: '11px', fontWeight: location.pathname.startsWith('/app/ask') ? 600 : 400 }}>
             <Sparkles size={18} />
             <span>Assistant</span>
           </Link>
-          <Link to="/app/wishlist" style={{ color: location.pathname.startsWith('/app/wishlist') ? 'var(--brand-primary)' : 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', textDecoration: 'none', fontSize: '11px' }}>
+          <Link to="/app/wishlist" style={{ color: location.pathname.startsWith('/app/wishlist') ? 'var(--brand-primary)' : 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', textDecoration: 'none', fontSize: '11px', fontWeight: location.pathname.startsWith('/app/wishlist') ? 600 : 400 }}>
             <Heart size={18} />
             <span>Saved</span>
           </Link>
-          <Link to={user ? "/app" : "/auth"} style={{ color: (location.pathname.startsWith('/app') && location.pathname !== '/app/ask' && location.pathname !== '/app/wishlist') ? 'var(--brand-primary)' : 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', textDecoration: 'none', fontSize: '11px' }}>
+          <Link to={user ? "/app" : "/auth"} style={{ color: (location.pathname.startsWith('/app') && location.pathname !== '/app/ask' && location.pathname !== '/app/wishlist') ? 'var(--brand-primary)' : 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', textDecoration: 'none', fontSize: '11px', fontWeight: (location.pathname.startsWith('/app') && location.pathname !== '/app/ask' && location.pathname !== '/app/wishlist') ? 600 : 400 }}>
             <User size={18} />
             <span>{user ? 'Account' : 'Sign In'}</span>
           </Link>
-        </div>
+        </nav>
       )}
 
       {/* ─── Premium Editorial Footer ─── */}
-      <footer style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border-color)', padding: '64px clamp(20px, 4vw, 48px) 32px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '48px', marginBottom: '48px' }}>
+      <footer style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border-color)', padding: 'clamp(40px, 6vw, 64px) clamp(16px, 4vw, 48px) 32px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(140px, 40vw, 200px), 1fr))', gap: 'clamp(28px, 4vw, 48px)', marginBottom: '40px' }}>
           <div>
             <div style={{ marginBottom: '16px' }}>
               <SakhiLogo size={36} variant="full" />

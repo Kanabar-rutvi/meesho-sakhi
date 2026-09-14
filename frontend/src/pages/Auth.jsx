@@ -309,8 +309,8 @@ export default function Auth() {
   // ═══════════════════════════════════════════════════════════════════════════
   if (showOtp) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 80px)', padding: '24px' }}>
-        <div className="card animate-slide-up" style={{ width: '100%', maxWidth: '420px', padding: '32px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 80px)', padding: 'clamp(14px, 4vw, 24px)' }}>
+        <div className="card animate-slide-up" style={{ width: '100%', maxWidth: '420px', padding: 'clamp(20px, 5vw, 32px)' }}>
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>Verify your email</h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
@@ -331,7 +331,7 @@ export default function Auth() {
           )}
 
           <form onSubmit={handleOtpSubmit}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '6px', marginBottom: '24px' }}>
               {otp.map((data, index) => (
                 <input
                   key={index}
@@ -343,7 +343,7 @@ export default function Auth() {
                   onPaste={index === 0 ? handleOtpPaste : undefined}
                   disabled={isLoading}
                   style={{
-                    width: '45px', height: '56px', fontSize: '24px', textAlign: 'center',
+                    width: 'clamp(34px, 11vw, 46px)', height: 'clamp(44px, 13vw, 56px)', fontSize: 'clamp(18px, 5vw, 24px)', textAlign: 'center',
                     borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)',
                     background: 'var(--bg-subtle)'
                   }}
@@ -382,8 +382,8 @@ export default function Auth() {
   // LOGIN / REGISTER SCREEN
   // ═══════════════════════════════════════════════════════════════════════════
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 80px)', padding: '24px' }}>
-      <div className="card animate-slide-up" style={{ width: '100%', maxWidth: '420px', padding: '32px' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 80px)', padding: 'clamp(14px, 4vw, 24px)' }}>
+      <div className="card animate-slide-up" style={{ width: '100%', maxWidth: '420px', padding: 'clamp(20px, 5vw, 32px)' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <h2 style={{ fontSize: '28px', marginBottom: '8px' }}>{isLogin ? 'Welcome back' : 'Create an account'}</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>{isLogin ? 'Enter your details to sign in.' : 'Start your AI-powered shopping journey.'}</p>

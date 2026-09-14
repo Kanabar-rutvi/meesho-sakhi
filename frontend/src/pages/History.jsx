@@ -109,9 +109,9 @@ export default function History() {
   }
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 24px', fontFamily: 'var(--font-body)' }}>
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: 'clamp(16px, 4vw, 40px) clamp(14px, 3.5vw, 24px)', fontFamily: 'var(--font-body)' }}>
       {/* ─── Segmented Navigation ─── */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '28px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '28px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
         <button
           onClick={() => setSearchParams({ tab: 'plans' })}
           style={{
@@ -154,7 +154,7 @@ export default function History() {
             <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
               Plans
             </div>
-            <h1 style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+            <h1 style={{ fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
               Your personalized plans.
             </h1>
             <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '640px' }}>
@@ -176,9 +176,9 @@ export default function History() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {history.map((plan, idx) => (
-                <div key={plan.id} className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                <div key={plan.id} className="card" style={{ padding: 'clamp(14px, 3.5vw, 24px)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', flex: '1 1 240px', minWidth: '0' }}>
                       <div style={{
                         width: '44px', height: '44px',
                         borderRadius: 'var(--radius-full)',
@@ -361,9 +361,9 @@ export default function History() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {history.map((plan) => (
-                <div key={plan.id} className="card" style={{ padding: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
-                    <div>
+                <div key={plan.id} className="card" style={{ padding: 'clamp(14px, 3.5vw, 24px)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 200px', minWidth: '0' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                         <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Session #{plan.id.slice(0, 8)}

@@ -79,8 +79,8 @@ export default function LandingPage() {
           {/* Two-column Hero Header */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-            gap: 'clamp(24px, 3.5vw, 48px)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 310px), 1fr))',
+            gap: 'clamp(20px, 3.5vw, 48px)',
             alignItems: 'center',
             marginBottom: 'clamp(32px, 4vw, 44px)'
           }}>
@@ -244,10 +244,10 @@ export default function LandingPage() {
             </div>
 
             {/* Platform Composition Body */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', minHeight: '380px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', minHeight: '380px' }}>
               {/* Left Column: Conversational AI snippet */}
               <div style={{
-                padding: 'clamp(24px, 3vw, 36px)', borderRight: '1px solid var(--border-color)',
+                padding: 'clamp(20px, 3vw, 36px)', borderBottom: '1px solid var(--border-color)',
                 background: 'var(--bg-subtle)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
                 <div>
@@ -346,7 +346,7 @@ export default function LandingPage() {
 
       {/* ─── 2. STORYTELLING SECTION: The Problem ─── */}
       <section style={{ padding: 'clamp(36px, 4.5vw, 60px) clamp(20px, 4vw, 48px)', background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '64px', alignItems: 'center' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(32px, 4vw, 64px)', alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
               The Challenge
@@ -403,7 +403,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '20px' }}>
             {[
               { title: "Natural Discovery", desc: "Search the way you speak, whether describing a specific style or a budget challenge." },
               { title: "Intelligent Guidance", desc: "Consult our AI assistant to narrow down options with practical, honest product comparisons." },
@@ -430,7 +430,7 @@ export default function LandingPage() {
 
       {/* ─── 4. WHY WE STARTED & OUR GOAL ─── */}
       <section style={{ padding: 'clamp(36px, 4.5vw, 60px) clamp(20px, 4vw, 48px)', background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '64px', alignItems: 'center' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(32px, 4vw, 64px)', alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
               Why We Started
@@ -448,7 +448,7 @@ export default function LandingPage() {
 
           <div style={{
             background: 'var(--bg-tint)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)',
-            padding: '36px 32px'
+            padding: 'clamp(24px, 3vw, 36px) clamp(20px, 3vw, 32px)'
           }}>
             <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
               Our Mission
@@ -480,7 +480,7 @@ export default function LandingPage() {
             </div>
 
             {/* Category Filter Navigation */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', maxWidth: '100%', paddingBottom: '4px' }} className="scrollbar-hide">
               {categories.map((cat) => (
                 <button
                   key={cat}
@@ -492,7 +492,8 @@ export default function LandingPage() {
                     border: '1px solid',
                     borderColor: activeCategory === cat ? 'var(--brand-primary)' : 'var(--border-color)',
                     fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-                    transition: 'all var(--transition-fast)'
+                    transition: 'all var(--transition-fast)',
+                    whiteSpace: 'nowrap'
                   }}
                 >
                   {cat}
@@ -502,7 +503,7 @@ export default function LandingPage() {
           </div>
 
           {/* Product Grid (Minimum 6 products per category from real data) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
+          <div className="responsive-product-grid">
             {categoryProducts.map((prod) => (
               <ProductCard
                 key={prod.id}
@@ -571,7 +572,7 @@ export default function LandingPage() {
               <div
                 key={prod.id}
                 style={{
-                  minWidth: '260px', maxWidth: '260px', flexShrink: 0, scrollSnapAlign: 'start'
+                  minWidth: 'clamp(210px, 68vw, 260px)', maxWidth: '260px', flexShrink: 0, scrollSnapAlign: 'start'
                 }}
               >
                 <ProductCard
@@ -594,7 +595,7 @@ export default function LandingPage() {
 
       {/* ─── 7. AI ASSISTANT: "Not sure what you're looking for?" ─── */}
       <section style={{ padding: 'clamp(36px, 4.5vw, 60px) clamp(20px, 4vw, 48px)', background: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '56px', alignItems: 'center' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(28px, 4vw, 56px)', alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
               Conversational Assistance
@@ -687,7 +688,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '16px' }}>
             {[
               { num: "01", step: "User Intent", desc: "Express what you need in plain words, including budget or lifestyle context." },
               { num: "02", step: "Preferences", desc: "Implicit styles and hard limits are refined without manual questionnaires." },
@@ -729,7 +730,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '24px' }}>
             {[
               { step: "01", title: "Tell us what you need", text: "Speak or type your goals naturally without filter gymnastics." },
               { step: "02", title: "Refine preferences", text: "Indicate budget limits or style nuances in seconds." },

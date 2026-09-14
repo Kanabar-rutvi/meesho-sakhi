@@ -148,12 +148,14 @@ function CartItemLive({ item, trustScore, trustReason, itemReason, onShowReason 
   const icon = CATEGORY_ICONS[item.category] || "📦";
   return (
     <div style={{
-      display: "flex", gap: "16px", padding: "16px",
+      display: "flex", gap: "clamp(12px, 2.5vw, 16px)", padding: "clamp(12px, 2.5vw, 16px)",
       border: "1px solid var(--slate-200)",
       borderRadius: "var(--radius-md)",
       background: "var(--bg-card)",
       position: "relative",
       overflow: "hidden",
+      flexWrap: "wrap",
+      alignItems: "flex-start",
       animation: "slideIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)",
     }}>
       {/* Just-added highlight bar */}
@@ -164,11 +166,11 @@ function CartItemLive({ item, trustScore, trustReason, itemReason, onShowReason 
       }} />
 
       <div style={{
-        width: "56px", height: "56px",
+        width: "48px", height: "48px",
         borderRadius: "var(--radius-md)",
         background: "linear-gradient(135deg, var(--purple-100), var(--brand-primary-light))",
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: "28px", flexShrink: 0,
+        fontSize: "24px", flexShrink: 0,
         boxShadow: "inset 0 2px 4px rgba(255,255,255,0.5)",
       }}>
         {icon}
@@ -283,7 +285,7 @@ export default function ProgressiveCart({
         background: status === "done"
           ? "linear-gradient(135deg, var(--success) 0%, #10b981 100%)"
           : "linear-gradient(135deg, var(--brand-primary-light) 0%, var(--brand-primary-dark) 100%)",
-        padding: "24px 32px", color: "white", position: "relative", overflow: "hidden",
+        padding: "clamp(16px, 3.5vw, 28px)", color: "white", position: "relative", overflow: "hidden",
         transition: "background 0.6s ease",
       }}>
         <div style={{
@@ -293,8 +295,8 @@ export default function ProgressiveCart({
           borderRadius: "50%", pointerEvents: "none"
         }} />
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "24px", flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: "250px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "clamp(12px, 2.5vw, 24px)", flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 240px", minWidth: "220px" }}>
             <div style={{
               fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "24px", marginBottom: "6px",
               display: "flex", alignItems: "center", gap: "12px"
@@ -401,7 +403,7 @@ export default function ProgressiveCart({
       </div>
 
       {/* Items — categories with skeletons that turn into real rows */}
-      <div style={{ padding: "24px 32px", display: "flex", flexDirection: "column", gap: "32px" }}>
+      <div style={{ padding: "clamp(16px, 3.5vw, 24px)", display: "flex", flexDirection: "column", gap: "32px" }}>
         {displayCats.length === 0 ? (
           <div style={{
             textAlign: "center", padding: "40px 20px",
@@ -481,11 +483,11 @@ export default function ProgressiveCart({
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 100, padding: '24px'
+          zIndex: 100, padding: '16px'
         }} onClick={() => setSelectedItem(null)}>
           <div style={{
             maxWidth: '500px', width: '100%', position: 'relative',
-            padding: '32px',
+            padding: 'clamp(18px, 4vw, 32px)',
             background: "var(--bg-card)",
             borderRadius: "var(--radius-xl)",
             border: "1px solid var(--slate-200)",

@@ -34,26 +34,26 @@ function CartItem({ item, onShowReason, onWishlist, wishlisted }) {
   const icon = CATEGORY_ICONS[item.category] || "📦";
   return (
     <div className="card animate-fade-in" style={{
-      display: "flex", gap: "16px", padding: "16px",
+      display: "flex", gap: "clamp(12px, 2.5vw, 16px)", padding: "clamp(12px, 2.5vw, 16px)",
       border: "1px solid var(--border-color)", cursor: "default",
-      marginBottom: "0" // Override generic card margin if needed
+      marginBottom: "0", flexWrap: "wrap", alignItems: "flex-start"
     }}>
       {/* Category badge */}
       <div style={{
-        width: "56px", height: "56px",
+        width: "48px", height: "48px",
         borderRadius: "var(--radius-md)",
         background: "var(--bg-subtle)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: "28px", flexShrink: 0
+        fontSize: "24px", flexShrink: 0
       }}>
         {icon}
       </div>
 
       {/* Info */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: "1 1 200px", minWidth: 0 }}>
         <div style={{
-          fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "16px",
-          color: "var(--text-primary)", lineHeight: 1.3, marginBottom: "8px"
+          fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "15px",
+          color: "var(--text-primary)", lineHeight: 1.3, marginBottom: "6px"
         }}>
           {item.name}
         </div>
@@ -62,7 +62,7 @@ function CartItem({ item, onShowReason, onWishlist, wishlisted }) {
           <span style={{
             fontSize: "11px", fontWeight: 600,
             color: "var(--text-secondary)", background: "var(--bg-subtle)",
-            padding: "4px 10px", borderRadius: "var(--radius-full)",
+            padding: "3px 8px", borderRadius: "var(--radius-full)",
             textTransform: "capitalize",
           }}>
             {item.category}
@@ -71,16 +71,16 @@ function CartItem({ item, onShowReason, onWishlist, wishlisted }) {
             <span style={{
               fontSize: "11px", fontWeight: 600,
               color: "var(--warning)", background: "var(--warning-bg)",
-              padding: "4px 10px", borderRadius: "var(--radius-full)",
+              padding: "3px 8px", borderRadius: "var(--radius-full)",
             }}>
               Qty: {item.quantity}
             </span>
           )}
         </div>
         
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", marginBottom: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "10px" }}>
           <StarRating rating={item.rating} />
-          <span style={{ fontSize: "12px", color: "var(--text-tertiary)" }}>({item.reviews.toLocaleString()} reviews)</span>
+          <span style={{ fontSize: "11px", color: "var(--text-tertiary)" }}>({item.reviews.toLocaleString()} reviews)</span>
           {item.trust_score && <TrustBadge score={item.trust_score} />}
         </div>
         
@@ -90,11 +90,11 @@ function CartItem({ item, onShowReason, onWishlist, wishlisted }) {
             style={{ 
               display: "inline-flex", alignItems: "center", gap: "6px",
               background: "none", border: "none", 
-              color: "var(--brand-primary)", fontSize: "13px", fontWeight: 600,
+              color: "var(--brand-primary)", fontSize: "12px", fontWeight: 600,
               cursor: "pointer", padding: "4px 0"
             }}
           >
-            <Sparkles size={14} /> Why Sakhi picked this
+            <Sparkles size={13} /> Why Sakhi picked this
           </button>
           <button
             onClick={() => onWishlist(item)}
@@ -102,30 +102,30 @@ function CartItem({ item, onShowReason, onWishlist, wishlisted }) {
             style={{
               display: "inline-flex", alignItems: "center", gap: "6px",
               background: wishlisted ? "var(--bg-subtle)" : "none",
-              border: wishlisted ? "1px solid var(--border-color)" : "1px solid var(--border-color)",
+              border: "1px solid var(--border-color)",
               color: wishlisted ? "var(--brand-primary)" : "var(--text-secondary)",
-              fontSize: "13px", fontWeight: 600,
+              fontSize: "12px", fontWeight: 600,
               cursor: wishlisted ? "default" : "pointer",
-              padding: "4px 12px", borderRadius: "var(--radius-full)",
+              padding: "3px 10px", borderRadius: "var(--radius-full)",
               transition: "all 0.2s ease"
             }}
           >
-            <Heart size={14} fill={wishlisted ? "currentColor" : "none"} />
+            <Heart size={13} fill={wishlisted ? "currentColor" : "none"} />
             {wishlisted ? "Saved" : "Wishlist"}
           </button>
         </div>
       </div>
 
       {/* Price */}
-      <div style={{ textAlign: "right", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+      <div style={{ textAlign: "right", flexShrink: 0, marginLeft: "auto" }}>
         <div>
           <div style={{
-            fontWeight: 700, fontSize: "20px",
+            fontWeight: 700, fontSize: "18px",
             color: "var(--text-primary)", fontFamily: "var(--font-display)"
           }}>
             ₹{item.price.toLocaleString()}
           </div>
-          <div style={{ fontSize: "12px", color: "var(--text-tertiary)", marginTop: "4px", fontWeight: 500 }}>
+          <div style={{ fontSize: "11px", color: "var(--text-tertiary)", marginTop: "2px", fontWeight: 500 }}>
             {item.brand}
           </div>
         </div>
@@ -260,15 +260,14 @@ export default function CartView({ checkout, goal }) {
         {/* Header Area */}
         <div style={{
           background: "var(--bg-subtle)",
-          padding: "32px", position: "relative", overflow: "hidden"
+          padding: "clamp(16px, 3.5vw, 32px)", position: "relative", overflow: "hidden"
         }}>
-
           
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "24px", flexWrap: "wrap" }}>
-            <div style={{ flex: 1, minWidth: "250px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "20px", flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 240px", minWidth: "220px" }}>
               <div style={{
-                fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "24px", marginBottom: "8px",
-              display: "flex", alignItems: "center", gap: "12px", color: "var(--text-primary)"
+                fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(20px, 3.5vw, 24px)", marginBottom: "8px",
+                display: "flex", alignItems: "center", gap: "10px", color: "var(--text-primary)"
               }}>
                 🛍️ Smart Cart
               </div>
@@ -278,21 +277,21 @@ export default function CartView({ checkout, goal }) {
             </div>
             
             {/* Cart Health & Total */}
-            <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-              <div style={{ textAlign: "center", background: "var(--bg-card)", padding: "12px 20px", borderRadius: "var(--radius-lg)", border: "1px solid var(--border-color)" }}>
-                <div style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px", color: "var(--text-tertiary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
-                  <HeartPulse size={14} /> Cart Health
+            <div style={{ display: "flex", gap: "clamp(12px, 2.5vw, 24px)", alignItems: "center", flexWrap: "wrap" }}>
+              <div style={{ textAlign: "center", background: "var(--bg-card)", padding: "10px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--border-color)" }}>
+                <div style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", color: "var(--text-tertiary)", marginBottom: "2px", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <HeartPulse size={13} /> Health
                 </div>
-                <div style={{ fontSize: "24px", fontWeight: 700, fontFamily: "var(--font-display)", color: healthColor }}>
+                <div style={{ fontSize: "22px", fontWeight: 700, fontFamily: "var(--font-display)", color: healthColor }}>
                   {healthScore}/100
                 </div>
               </div>
               
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px", color: "var(--text-tertiary)", marginBottom: "4px" }}>
+                <div style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", color: "var(--text-tertiary)", marginBottom: "2px" }}>
                   Total ({item_count} items)
                 </div>
-                <div style={{ fontSize: "32px", fontWeight: 700, fontFamily: "var(--font-display)", color: "var(--text-primary)" }}>
+                <div style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 700, fontFamily: "var(--font-display)", color: "var(--text-primary)" }}>
                   ₹{total.toLocaleString()}
                 </div>
               </div>
@@ -301,10 +300,10 @@ export default function CartView({ checkout, goal }) {
 
           {/* Budget bar */}
           {budget > 0 && (
-            <div style={{ marginTop: "32px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 600, opacity: 0.9, marginBottom: "8px" }}>
+            <div style={{ marginTop: "24px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 600, opacity: 0.9, marginBottom: "8px", flexWrap: "wrap", gap: "6px" }}>
                 <span>Budget used: {utilization}%</span>
-                {saved > 0 && <span style={{ background: "rgba(255,255,255,0.2)", padding: "4px 12px", borderRadius: "var(--radius-full)" }}>💰 Saved ₹{saved.toLocaleString()}</span>}
+                {saved > 0 && <span style={{ background: "rgba(255,255,255,0.2)", padding: "3px 10px", borderRadius: "var(--radius-full)" }}>💰 Saved ₹{saved.toLocaleString()}</span>}
               </div>
               <div style={{ height: "8px", background: "var(--border-color)", borderRadius: "var(--radius-full)", overflow: "hidden" }}>
                 <div style={{ height: "100%", width: `${utilization}%`, background: "var(--brand-primary)", borderRadius: "var(--radius-full)", transition: "width 1s cubic-bezier(0.4, 0, 0.2, 1)" }} />
@@ -315,26 +314,26 @@ export default function CartView({ checkout, goal }) {
 
         {/* Savings tip */}
         {savings_tip && (
-          <div style={{ padding: "16px 32px", background: "var(--warning-bg)", borderBottom: "1px solid var(--border-color)", display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "20px" }}>💡</span>
-            <span style={{ fontSize: "14px", color: "var(--warning)", fontWeight: 600 }}>{savings_tip}</span>
+          <div style={{ padding: "14px clamp(16px, 3.5vw, 32px)", background: "var(--warning-bg)", borderBottom: "1px solid var(--border-color)", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "18px" }}>💡</span>
+            <span style={{ fontSize: "13px", color: "var(--warning)", fontWeight: 600 }}>{savings_tip}</span>
           </div>
         )}
 
         {/* Items */}
-        <div style={{ padding: "32px", display: "flex", flexDirection: "column", gap: "32px" }}>
+        <div style={{ padding: "clamp(16px, 3.5vw, 32px)", display: "flex", flexDirection: "column", gap: "24px" }}>
           {Object.entries(byCat).map(([cat, catItems]) => (
             <div key={cat}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", borderBottom: "1px solid var(--border-color)", paddingBottom: "8px" }}>
-                <span style={{ fontSize: "20px" }}>{CATEGORY_ICONS[cat] || "📦"}</span>
-                <span style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-primary)", textTransform: "capitalize", fontFamily: "var(--font-display)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px", borderBottom: "1px solid var(--border-color)", paddingBottom: "8px" }}>
+                <span style={{ fontSize: "18px" }}>{CATEGORY_ICONS[cat] || "📦"}</span>
+                <span style={{ fontSize: "15px", fontWeight: 700, color: "var(--text-primary)", textTransform: "capitalize", fontFamily: "var(--font-display)" }}>
                   {cat}
                 </span>
-                <span style={{ fontSize: "14px", color: "var(--text-tertiary)", marginLeft: "auto", fontWeight: 600 }}>
+                <span style={{ fontSize: "13px", color: "var(--text-tertiary)", marginLeft: "auto", fontWeight: 600 }}>
                   ₹{catItems.reduce((s, i) => s + i.price, 0).toLocaleString()}
                 </span>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {catItems.map(item => <CartItem key={item.id} item={item} onShowReason={setSelectedItem} onWishlist={addToWishlist} wishlisted={wishlistedIds.has(item.id)} />)}
               </div>
             </div>
@@ -342,16 +341,16 @@ export default function CartView({ checkout, goal }) {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: "24px 32px", borderTop: "1px solid var(--border-color)", display: "flex", gap: "16px", alignItems: "center", background: "var(--bg-subtle)", flexWrap: "wrap" }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ padding: "clamp(16px, 3vw, 24px) clamp(16px, 3.5vw, 32px)", borderTop: "1px solid var(--border-color)", display: "flex", gap: "16px", alignItems: "center", background: "var(--bg-subtle)", flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 280px" }}>
             <MeeshoOrderPanel items={items} total={total} />
           </div>
           <button
             onClick={() => items.forEach(item => addToWishlist(item))}
             className="btn btn-secondary"
-            style={{ padding: "16px 24px", display: "inline-flex", alignItems: "center", gap: "8px" }}
+            style={{ padding: "12px 20px", display: "inline-flex", alignItems: "center", gap: "8px", flexShrink: 0 }}
           >
-            <Heart size={16} /> Save All to Wishlist
+            <Heart size={15} /> Save All to Wishlist
           </button>
           <button onClick={onShareList} className="btn btn-secondary" style={{ padding: "16px 24px" }}>
             Share List
